@@ -16,7 +16,7 @@ export function validateEndpoint(value: string): string {
 export class ApiError extends Error {
   constructor(message: string, public status = 0, public code = '') { super(message); }
   get uncertain() { return this.status === 0 || this.status >= 500 || this.status === 408 || this.status === 429; }
-  get conflict() { return this.code === '40001' || this.status === 409; }
+  get conflict() { return this.code === 'PT409' || this.code === '40001' || this.status === 409; }
 }
 export class GuildClient {
   readonly endpoints: Endpoints;

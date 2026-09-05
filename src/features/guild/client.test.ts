@@ -24,7 +24,7 @@ describe('guild transport boundary', () => {
     expect(fetcher.mock.calls.map(call => call[1].body)).toEqual([JSON.stringify(input), JSON.stringify(input), JSON.stringify(input)]);
   });
   it('clears retry on definitive revision conflict', async () => {
-    const retry = new TaskRetry(); const client = new GuildClient(localEndpoints, 'test', vi.fn().mockResolvedValue(new Response('{"code":"40001","message":"Revision conflict"}', { status: 409 })));
+    const retry = new TaskRetry(); const client = new GuildClient(localEndpoints, 'test', vi.fn().mockResolvedValue(new Response('{"code":"PT409","message":"Revision conflict"}', { status: 409 })));
     await expect(retry.send(client, input)).rejects.toMatchObject({ conflict: true }); expect(retry.pending).toBeNull();
     expect(new ApiError('forbidden', 403).uncertain).toBe(false);
   });
