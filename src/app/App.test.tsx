@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, expect, test } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import App from './App';
@@ -20,6 +20,8 @@ test('fuzzy search, explicit selection, quantity, pin and progress-only completi
  const qty=screen.getByLabelText('Desired finished units'); await user.clear(qty); await user.type(qty,'11');
  expect(screen.getByText(/2 batches · 20 output · 9 surplus/)).toBeVisible(); await user.click(screen.getByRole('button',{name:'Pin craft goal'}));
  expect(await screen.findByRole('heading',{name:'Arrow · 0 / 11'})).toBeVisible();
+ // The saved heading renders before the post-save revision read settles.
+ await waitFor(()=>expect(screen.getByRole('button',{name:'Complete Arrow'})).toBeEnabled());
  await user.click(screen.getByRole('button',{name:'Complete Arrow'})); expect(await screen.findByRole('heading',{name:'Arrow · 11 / 11'})).toBeVisible();
  expect((await workspaceStore.load()).stock).toEqual({});
 });
