@@ -1,0 +1,2 @@
+import {defineConfig,devices} from '@playwright/test';
+export default defineConfig({testDir:'./tests/e2e',testMatch:'catalog-runtime.spec.ts',outputDir:'/tmp/palworld-catalog-runtime-results',reporter:'list',use:{trace:'retain-on-failure'},projects:[{name:'runtime-desktop',use:{...devices['Desktop Chrome']}},{name:'runtime-mobile',use:{...devices['Pixel 7']}}],webServer:{command:'npm run dev -- --port 4287 --strictPort',url:'http://127.0.0.1:4287',reuseExistingServer:false}});

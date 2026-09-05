@@ -1,9 +1,13 @@
 import { useState } from 'react';
-import { catalog, itemName, materials } from '../domain/catalog';
+import { useCatalogRuntime, planRuntimeWorkspace, goalItemName, snapshotItemName, bindingLabel } from './catalog-runtime';
 import type { Goal } from '../domain/planner';
 import type { WorkspaceProps } from './Craft';
 function GoalEditor({goal,onSave}:{goal:Goal;onSave:(g:Goal)=>void}) { const [error,setError]=useState(''); return <form onSubmit={e=>{e.preventDefault();const f=new FormData(e.currentTarget);const quantity=Number(f.get('quantity')),completed=Number(f.get('completed'));if(!Number.isSafeInteger(quantity)||quantity<1||!Number.isSafeInteger(completed)||completed<0||completed>quantity){setError('Use whole numbers; progress must be between zero and quantity.');return;}setError('');onSave({...goal,quantity,completed,notes:String(f.get('notes'))});}}><label>Goal quantity<input name="quantity" type="number" min="1" defaultValue={goal.quantity}/></label><label>Completed units<input name="completed" type="number" min="0" defaultValue={goal.completed}/></label><label>Notes<textarea name="notes" defaultValue={goal.notes}/></label>{error&&<p role="alert">{error}</p>}<button>Save goal</button></form>; }
 export function Queue({data,update}:WorkspaceProps) {
+ const {runtime,error}=useCatalogRuntime();
+ if(!runtime)return <p role="status">{error||'Loading bound references…'}</p>;
+ const result=planRuntimeWorkspace(runtime,data);
+ const resolved=(g:Goal)=>result.goalResults.some(r=>r.id===g.id&&r.status==='resolved');
  const active=data.goals.filter(g=>g.completed<g.quantity);
  const history=data.goals.filter(g=>g.completed===g.quantity);
  const change=(goal:Goal)=>void update({...data,goals:data.goals.map(g=>g.id===goal.id?goal:g)});
@@ -20,34 +24,37 @@ export function Queue({data,update}:WorkspaceProps) {
   <section aria-label="Active craft goals"><h3>Active goals</h3>
    {!active.length&&<p>{history.length?'No active plans.':'No plans yet.'} Search and pin a recipe to begin, or reopen a completed goal.</p>}
    <ol className="goal-list">{active.map((g,i)=><li key={g.id}>
-    <h4>{itemName(g.item)} · {g.completed} / {g.quantity}</h4>
-    {!catalog.recipes.some(r=>r.id===g.item)&&<p>Blocked: unknown recipe retained.</p>}
-    {g.notes&&<p>{g.notes}</p>}
+    <h4>{goalItemName(runtime,g)} · {g.completed} / {g.quantity}</h4>
+    {!resolved(g)&&<p>Unresolved goal retained. Review diagnostics in Craft; legacy adoption is in Settings.</p>}
+    <p>Bound reference: {bindingLabel(g)} · Recipe: {g.recipeId??'unknown'}</p>{g.notes&&<p>{g.notes}</p>}
     <div className="actions">
-     <button disabled={i===0} aria-label={`Move ${itemName(g.item)} up`} onClick={()=>move(i,-1)}>↑ Priority</button>
-     <button disabled={i===active.length-1} aria-label={`Move ${itemName(g.item)} down`} onClick={()=>move(i,1)}>↓ Priority</button>
-     <button disabled={!catalog.recipes.some(r=>r.id===g.item)} aria-label={`Complete ${itemName(g.item)}`} onClick={()=>change({...g,completed:g.quantity})}>Complete (progress only)</button>
-     <button onClick={()=>void update({...data,goals:data.goals.filter(v=>v.id!==g.id)})}>Remove {itemName(g.item)}</button>
+     <button disabled={i===0} aria-label={`Move ${goalItemName(runtime,g)} up`} onClick={()=>move(i,-1)}>↑ Priority</button>
+     <button disabled={i===active.length-1} aria-label={`Move ${goalItemName(runtime,g)} down`} onClick={()=>move(i,1)}>↓ Priority</button>
+     <button disabled={!resolved(g)} aria-label={`Complete ${goalItemName(runtime,g)}`} onClick={()=>change({...g,completed:g.quantity})}>Complete (progress only)</button>
+     <button onClick={()=>void update({...data,goals:data.goals.filter(v=>v.id!==g.id)})}>Remove {goalItemName(runtime,g)}</button>
     </div>
-    <details><summary>Edit {itemName(g.item)} / partial progress</summary><GoalEditor key={`${g.quantity}:${g.completed}:${g.notes}`} goal={g} onSave={change}/></details>
+    <details><summary>Edit {goalItemName(runtime,g)} / partial progress</summary><GoalEditor key={`${g.quantity}:${g.completed}:${g.notes}`} goal={g} onSave={change}/></details>
    </li>)}</ol>
   </section>
   <section aria-label="Completed goal history"><h3>Completed goal history</h3>
    <p>Completed goals are retained, but excluded from planning. Reopen resets completed units to zero and restores the full goal at its retained queue position. Quantity, ID, notes, inventory and inventory timestamps stay unchanged.</p>
    {!history.length&&<p>No completed goals yet.</p>}
    <ol className="goal-list">{history.map(g=><li key={g.id}>
-    <h4>{itemName(g.item)} · {g.completed} / {g.quantity}</h4>
-    {!catalog.recipes.some(r=>r.id===g.item)&&<p>Unknown recipe retained; reopening will create a blocked active goal.</p>}
-    {g.notes&&<p>{g.notes}</p>}
-    <button onClick={()=>change({...g,completed:0})}>Reopen {itemName(g.item)} (progress only)</button>
-    <button onClick={()=>void update({...data,goals:data.goals.filter(v=>v.id!==g.id)})}>Remove {itemName(g.item)}</button>
+    <h4>{goalItemName(runtime,g)} · {g.completed} / {g.quantity}</h4>
+    <p>Historical progress retained. Reopening reevaluates the exact saved reference; unresolved bindings remain blocked.</p>
+    <p>Bound reference: {bindingLabel(g)} · Recipe: {g.recipeId??'unknown'}</p>{g.notes&&<p>{g.notes}</p>}
+    <button onClick={()=>change({...g,completed:0})}>Reopen {goalItemName(runtime,g)} (progress only)</button>
+    <button onClick={()=>void update({...data,goals:data.goals.filter(v=>v.id!==g.id)})}>Remove {goalItemName(runtime,g)}</button>
    </li>)}</ol>
   </section>
  </section>;
 }
 export function Inventory({data,update}:WorkspaceProps) {
  const [error,setError]=useState('');
- const ids=[...new Set([...materials.map(m=>m.id),...Object.keys(data.stock)])];
+ const {runtime,error:loadError}=useCatalogRuntime();
+ if(!runtime)return <p>{loadError||'Loading inventory reference…'}</p>;
+ const itemName=(id:string)=>snapshotItemName(runtime.selected,id);
+ const ids=[...new Set([...(runtime.selected?.craft.items.map(m=>m.id)??[]),...Object.keys(data.stock)])];
  return <section className="card"><h2>Manual inventory</h2>
   <p>Enter physical stock only, not planned output. Saved locally; completion never changes these counts.</p>
   <p className="warning">Stale manual counts can misstate shortages. There is no live game sync; last updated records your manual save, not verification in the game. Check counts before crafting.</p>
