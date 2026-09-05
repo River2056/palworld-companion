@@ -1,3 +1,4 @@
+/* global process, URL, fetch, console */
 import { chromium, expect } from '@playwright/test';
 import {readFileSync} from 'node:fs';
 import {randomUUID} from 'node:crypto';

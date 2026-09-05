@@ -1,10 +1,10 @@
-/* global URL, fetch, console, AbortSignal */
+/* global URL, fetch, console, AbortSignal, process */
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-const sql = (query) => execFileSync('podman', ['exec','-i','pw-guild-local-db','psql','-U','postgres','-v','ON_ERROR_STOP=1','-At'], {input:query, encoding:'utf8'}).trim();
-const config = JSON.parse(await readFile(new URL('./.local/config.json', import.meta.url)));
+const sql = (query) => execFileSync('podman', ['exec','-i',`${process.env.GUILD_LOCAL_PREFIX ?? 'pw-guild-local'}-db`,'psql','-U','postgres','-v','ON_ERROR_STOP=1','-At'], {input:query, encoding:'utf8'}).trim();
+const config = JSON.parse(await readFile(new URL(process.env.GUILD_LOCAL_PREFIX ? `./.local/${process.env.GUILD_LOCAL_PREFIX === 'pw-guild-local' ? '' : process.env.GUILD_LOCAL_PREFIX + '/'}config.json` : './.local/config.json', import.meta.url)));
 const users = [];
 async function request(path, body, token, method = 'POST') {
   const res = await fetch(`${config.restUrl}/${path}`, { method, signal: AbortSignal.timeout(10000), headers: { apikey: config.anonKey, Authorization: `Bearer ${token ?? config.anonKey}`, 'Content-Type': 'application/json' }, ...(body === undefined ? {} : {body: JSON.stringify(body)}) });

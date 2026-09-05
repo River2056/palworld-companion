@@ -1,8 +1,8 @@
-/* global URL, fetch, console, AbortSignal */
+/* global URL, fetch, console, AbortSignal, process */
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {randomUUID} from 'node:crypto';
-const config=JSON.parse(await readFile(new URL('./.local/config.json',import.meta.url)));
+const config=JSON.parse(await readFile(new URL(process.env.GUILD_LOCAL_PREFIX ? `./.local/${process.env.GUILD_LOCAL_PREFIX === 'pw-guild-local' ? '' : process.env.GUILD_LOCAL_PREFIX + '/'}config.json` : './.local/config.json', import.meta.url)));
 const users=[];
 async function req(path,body,user=users[0],method='POST') {
  const r=await fetch(`${config.restUrl}/${path}`,{method,signal:AbortSignal.timeout(10000),headers:{apikey:config.anonKey,Authorization:`Bearer ${user?.access_token??config.anonKey}`,'Content-Type':'application/json'},...(body===undefined?{}:{body:JSON.stringify(body)})});
