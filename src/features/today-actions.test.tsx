@@ -1,4 +1,5 @@
 import { act, render, screen, waitFor } from '@testing-library/react';
+import { createBundledCatalogSnapshot, type CatalogSnapshot } from '../domain/catalog-snapshot';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { Today } from './Today';
@@ -12,13 +13,34 @@ function fixture():PalSnapshot {
  const route:SavedRoute={id:'saved-route',targetId:pair.childId,sourceVersion:catalog.catalogId,conditional:false,completed:['first'],steps:['first','second'].map(id=>({id,pairId:pair.id,childId:pair.childId,parents:['owned:parent-0','owned:parent-1'],conditional:false}))};
  return {pals,routes:[route],bases:[{id:'ore-base',name:'Ore Outpost',capacity:3,workerIds:[],slots:[{id:'mining-slot',work:'Mining',minimum:4,priority:8}]}]};
 }
-async function seed(snapshot:PalSnapshot) {
- await palStore.db.transaction('rw',palStore.db.pals,palStore.db.routes,palStore.db.bases,async()=>{
-  await palStore.db.pals.bulkPut(snapshot.pals);await palStore.db.routes.bulkPut(snapshot.routes);await palStore.db.bases.bulkPut(snapshot.bases);
+let reference:CatalogSnapshot;
+async function seed(snapshot:PalSnapshot, rawRoutes=false) {
+ // Raw personal rows deliberately allow damaged/retired assignment fixtures.
+ await palStore.db.write(async()=>{
+  await palStore.db.pals.bulkPut(snapshot.pals);await palStore.db.bases.bulkPut(snapshot.bases);
+  if(rawRoutes)await palStore.db.routes.bulkPut(snapshot.routes);
  });
+ if(!rawRoutes)for(const route of snapshot.routes){
+  // Capture the actual selected generation after prior fixture writes, not a
+  // fabricated revision. New plans acquire their binding through the real store.
+  const generation=await palStore.db.personalMetadata();
+  expect(generation.selectedCatalog).toBe(reference.id);
+  await palStore.saveRoute(route,{snapshotId:generation.selectedCatalog,revision:generation.revision});
+  expect((await palStore.db.routes.get(route.id))?.catalogBinding).toEqual({state:'bound',snapshotId:reference.id});
+ }
 }
 function show(){return render(<Today data={emptyWorkspace()} update={vi.fn().mockResolvedValue(true)}/>);}
-beforeEach(async()=>{await palStore.db.pals.clear();await palStore.db.routes.clear();await palStore.db.bases.clear();});
+beforeEach(async()=>{
+ reference=await createBundledCatalogSnapshot();
+ await palStore.db.ready();
+ await palStore.db.write(async()=>{
+  await palStore.db.pals.clear();await palStore.db.routes.clear();await palStore.db.bases.clear();
+  await palStore.db.putSnapshot(reference);
+  const metadata=(await palStore.db.metadata.get('personal'))!;
+  await palStore.db.metadata.put({...metadata,selectedCatalog:reference.id});
+ });
+ expect(await palStore.db.resolveSnapshot(reference.id)).toEqual(reference);
+});
 afterEach(()=>vi.restoreAllMocks());
 
 test('nonempty snapshot names next incomplete child/target and named slot gaps with existing routes',async()=>{
@@ -30,14 +52,16 @@ test('nonempty snapshot names next incomplete child/target and named slot gaps w
  const before=await palStore.snapshot();
  await userEvent.click(screen.getByRole('link',{name:`Review saved route for ${speciesName(pair.childId)}`}));
  expect(await palStore.snapshot()).toEqual(before);
- expect(screen.getByRole('heading',{name:'Pinned craft queue'})).toBeVisible();
- expect(screen.getByRole('region',{name:'Active craft goals'})).toBeVisible();
+ expect(await screen.findByRole('heading',{name:'Pinned craft queue'})).toBeVisible();
+ expect(await screen.findByRole('region',{name:'Active craft goals'})).toBeVisible();
  expect(screen.getByText(/Today never signs in or refreshes Guild automatically/)).toBeVisible();
 });
 
 test('live local writes update next action and distinguish manual completion from verified offspring',async()=>{
  const snapshot=fixture();await seed(snapshot);show();await screen.findByText(/Next incomplete step 2/);
- await act(async()=>{await palStore.saveRoute({...snapshot.routes[0],completed:['first','second']});});
+ const saved=(await palStore.snapshot()).routes[0];
+ await act(async()=>{await palStore.saveRoute({...saved,completed:['first','second']});});
+ expect((await palStore.snapshot()).routes[0].catalogBinding).toEqual(saved.catalogBinding);
  expect(await screen.findByText(/All saved steps marked complete manually; offspring and gender are not verified/)).toBeVisible();
  expect(screen.queryByText(/Next incomplete step/)).not.toBeInTheDocument();
 });
@@ -45,31 +69,61 @@ test('live local writes update next action and distinguish manual completion fro
 test('empty routes and unconfigured base slots are not called complete',async()=>{
  const snapshot=fixture();snapshot.routes=[];snapshot.bases[0].slots=[];await seed(snapshot);show();
  expect(await screen.findByText(/No saved breeding routes/)).toBeVisible();
- expect(screen.getByText(/No work slots configured; coverage has not been assessed/)).toBeVisible();
+ expect(await screen.findByText(/No work slots configured; coverage has not been assessed/)).toBeVisible();
 });
 
 test('zero steps and corrupt completion IDs report unknown progress without hiding other cards',async()=>{
  const snapshot=fixture();snapshot.routes[0].steps=[];
  snapshot.routes.push({...fixture().routes[0],id:'corrupt-checklist',completed:['ghost-step']});
- await seed(snapshot);show();
+ for(const route of snapshot.routes)route.catalogBinding={state:'bound',snapshotId:reference.id};
+ await seed(snapshot,true);const before=await palStore.snapshot();show();
  expect(await screen.findByText(/Saved route saved-route has missing steps/)).toBeVisible();
  expect(screen.getByText(/Saved route corrupt-checklist has missing steps/)).toBeVisible();
  expect(screen.getByText(/slot mining-slot is uncovered/)).toBeVisible();
  expect(screen.queryByText(/All saved steps marked complete/)).not.toBeInTheDocument();
+ expect(await palStore.snapshot()).toEqual(before);
 });
 
 test('unknown saved species, pairs and parent/worker IDs remain visible and block clean completion claims',async()=>{
  const snapshot=fixture();const route=snapshot.routes[0];
- route.targetId='legacy-child';route.completed=['first','second'];
- route.steps.forEach(step=>{step.childId='legacy-child';step.pairId='legacy-pair';step.parents=['owned:lost-parent','owned:parent-1'];});
+ route.completed=['first','second'];
+ route.steps[0].childId='legacy-child';
+ route.steps.forEach(step=>{step.pairId='legacy-pair';step.parents=['owned:lost-parent','owned:parent-1'];});
  snapshot.bases[0].workerIds=['lost-worker'];snapshot.bases[0].slots=[];
  await seed(snapshot);show();
- expect(await screen.findByRole('heading',{name:'Breeding target: Unknown species ID: legacy-child'})).toBeVisible();
+ expect(await screen.findByRole('heading',{name:`Breeding target: ${speciesName(pair.childId,reference.pals)}`})).toBeVisible();
+ expect(screen.getByText('Unknown child species ID: legacy-child')).toBeVisible();
+ expect(screen.queryByText(`owned:parent-1: Unknown species ID: ${pair.parentIds[1]}`)).not.toBeInTheDocument();
  expect(screen.getByText('Unknown breeding pair ID: legacy-pair')).toBeVisible();
  expect(screen.getByText('Missing parent ID: owned:lost-parent')).toBeVisible();
  expect(screen.getByText('Missing worker ID: lost-worker')).toBeVisible();
  expect(screen.getByText(/Checklist marked complete, but saved references need review/)).toBeVisible();
  expect(screen.getByText(/Coverage is not confirmed/)).toBeVisible();
+ expect(screen.queryByText(/All saved steps marked complete manually/)).not.toBeInTheDocument();
+ // Retain unknown-target coverage as well as the mixed known/unknown case.
+ const saved=(await palStore.snapshot()).routes[0];
+ await act(async()=>{await palStore.saveRoute({...saved,targetId:'legacy-child',steps:saved.steps.map(step=>({...step,childId:'legacy-child'}))});});
+ expect(await screen.findByRole('heading',{name:'Breeding target: Unknown species ID: legacy-child'})).toBeVisible();
+ expect(screen.getByText(/Checklist marked complete, but saved references need review/)).toBeVisible();
+ expect((await palStore.snapshot()).routes[0].catalogBinding).toEqual(saved.catalogBinding);
+});
+
+test('legacy-unbound routes never borrow bundled names or imply completion and viewing never adopts them',async()=>{
+ const snapshot=fixture();
+ snapshot.routes[0].completed=['first','second'];
+ snapshot.routes[0].catalogBinding={state:'legacy-unbound',claimedVersion:catalog.catalogId};
+ await seed(snapshot,true);
+ const before=await palStore.snapshot();const metadata=await palStore.db.personalMetadata();
+ show();
+ expect(await screen.findByRole('heading',{name:`Breeding target: Unknown species ID: ${pair.childId}`})).toBeVisible();
+ expect(screen.getByRole('alert')).toHaveTextContent('Catalog migration required: legacy-unbound. Exact saved reference unavailable');
+ expect(screen.getByText(`Unknown child species ID: ${pair.childId}`)).toBeVisible();
+ expect(screen.getByText(`Unknown breeding pair ID: ${pair.id}`)).toBeVisible();
+ expect(screen.queryByText(/All saved steps marked complete|Next incomplete step/)).not.toBeInTheDocument();
+ expect(screen.queryByRole('link',{name:`Review saved route for ${speciesName(pair.childId,reference.pals)}`})).not.toBeInTheDocument();
+ await userEvent.click(screen.getByRole('link',{name:`Review saved route for Unknown species ID: ${pair.childId}`}));
+ expect(await palStore.snapshot()).toEqual(before);
+ expect(await palStore.db.personalMetadata()).toEqual(metadata);
 });
 
 test('archived parents and unsupported work IDs stay actionable',async()=>{
@@ -91,10 +145,15 @@ test('valid saved coverage is explicitly limited to configured slots',async()=>{
 
 test('read errors show unknown state, retain crafting, and can retry without writing personal data',async()=>{
  const read=vi.spyOn(palStore,'snapshot').mockRejectedValue(new Error('read denied'));
+ const before=await palStore.db.personalMetadata();
+ const write=vi.spyOn(palStore.db,'write');
  show();expect(await screen.findByRole('alert')).toHaveTextContent('Personal progress and coverage are unknown');
- expect(screen.getByRole('heading',{name:'Pinned craft queue'})).toBeVisible();
- expect(screen.getByRole('region',{name:'Active craft goals'})).toBeVisible();
+ expect(await screen.findByRole('heading',{name:'Pinned craft queue'})).toBeVisible();
+ expect(await screen.findByRole('region',{name:'Active craft goals'})).toBeVisible();
  read.mockRestore();await userEvent.click(screen.getByRole('button',{name:'Retry personal summary'}));
  expect(await screen.findByText(/No saved breeding routes/)).toBeVisible();
  await waitFor(()=>expect(screen.queryByRole('alert')).not.toBeInTheDocument());
+ expect(write).not.toHaveBeenCalled();
+ expect(await palStore.db.personalMetadata()).toEqual(before);
+ expect(await palStore.snapshot()).toMatchObject({pals:[],routes:[],bases:[]});
 });
