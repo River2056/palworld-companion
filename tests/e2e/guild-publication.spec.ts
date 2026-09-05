@@ -1,0 +1,125 @@
+import { test, expect } from '@playwright/test';
+import { readFileSync } from 'node:fs';
+import { randomUUID } from 'node:crypto';
+import type { Session, Task, TaskInput, StockInput } from '../../src/features/guild/client';
+
+const configPath = process.env.GUILD_BROWSER_CONFIG;
+test.skip(!configPath, 'Opt-in: supply an isolated GUILD_BROWSER_CONFIG and Vite URL.');
+for (const width of [1280, 390]) test(`publication, stale source, conflicts and privacy (${width}px)`, async ({ browser }) => {
+  test.setTimeout(90000);
+  const { authUrl, restUrl } = JSON.parse(readFileSync(configPath!, 'utf8'));
+  const page=await browser.newPage({viewport: {width,height:900}}); const requests:string[]=[];page.on('request',request=>requests.push(request.url()));const errors:string[]=[]; const mutations:(TaskInput | StockInput)[]=[]; let session:Session;
+  page.on('pageerror',e=>errors.push(e.message));
+  page.on('request',r=>{if(r.url().includes('/rpc/mutate_task') || r.url().includes('/rpc/set_shared_stock')) mutations.push(r.postDataJSON());});
+  page.on('response',async r=>{if(r.url()===`${authUrl}/signup` || r.url().includes('/token?')) session=await r.json();});
+  const suffix=randomUUID(),email=`publication-${suffix}@example.test`,password=`Test-${suffix}!`;
+  await page.goto(`${process.env.GUILD_BROWSER_URL || 'http://127.0.0.1:4187'}/#/guild`);
+  await page.evaluate(async()=>{const {workspaceStore}=await import(String('/src/data/workspace.ts')); const {catalog}=await import(String('/src/domain/catalog.ts'));await workspaceStore.save({version:1,goals:[{id:'acceptance-goal',item:catalog.recipes[0].id,quantity:2,completed:0,notes:'NEVER SHARE THIS'}],stock:{},recent:[]});});
+  await page.reload();
+  await expect(page.getByRole('link',{name:'Data sources and licenses'})).toHaveAttribute('href','/attribution.html');
+  expect(requests.every(url => new URL(url).origin === new URL(process.env.GUILD_BROWSER_URL || 'http://127.0.0.1:4187').origin)).toBe(true);
+  async function login(signup=false) {
+   await page.getByLabel('Auth URL',{exact:true}).fill(authUrl);await page.getByLabel('REST URL',{exact:true}).fill(restUrl);
+   await page.getByLabel(/I trust both endpoints/).check();await page.getByLabel('Email',{exact:true}).fill(email);await page.getByLabel('Password',{exact:true}).fill(password);
+   if(signup) await page.getByLabel('Create a new account',{exact:true}).check();
+   await page.getByRole('button',{name:signup?'Sign up':'Sign in',exact:true}).click();
+   await expect(page.getByLabel('New guild name')).toBeVisible();
+  }
+  await login(true);await page.getByLabel('New guild name').fill(`Publication ${suffix}`);await page.getByRole('button',{name:'Create guild',exact:true}).click();
+  await expect(page.getByText('Your role: owner',{exact:true})).toBeVisible();
+  const guild=await page.getByLabel('Selected guild').inputValue();
+  async function rpc(name:string,input:Record<string,unknown>) {const r=await fetch(`${restUrl}/rpc/${name}`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${session.access_token}`},body:JSON.stringify(input)});if(!r.ok) throw Error(await r.text());return r.json();}
+  async function tasks():Promise<Task[]> {const r=await fetch(`${restUrl}/guild_tasks?guild_id=eq.${guild}`,{headers:{Authorization:`Bearer ${session.access_token}`}});if(!r.ok) throw Error(await r.text());return r.json();}
+  const picker=page.getByLabel('Personal source to copy');const choice=await picker.locator('option').nth(width === 1280 ? 1 : 2).getAttribute('value');await picker.selectOption(choice!);
+  await expect(page.getByRole('button',{name:'Publish selected source'})).toBeDisabled();expect(mutations).toHaveLength(0);
+  await page.getByLabel(/I consent to share exactly/).check();await page.getByRole('button',{name:'Publish selected source'}).click();
+  await expect(page.locator('.guild-tasks > li')).toHaveCount(1);expect(JSON.stringify(mutations)).not.toContain('NEVER SHARE THIS');
+  expect(Object.keys(mutations[0]).sort()).toEqual(['p_action','p_checksum','p_delivered','p_description','p_guild','p_key','p_requested','p_revision','p_source','p_source_requirement','p_status','p_task','p_title','p_type'].sort());
+  expect(mutations[0]).toMatchObject({p_description:'',p_delivered:0,p_action:'create',p_task:null});
+  const stored = await page.evaluate(() => JSON.stringify([localStorage,sessionStorage]));
+  expect(stored).not.toContain(password);expect(stored).not.toContain(session!.access_token);
+  const task=(await tasks())[0];expect(task.source_requirement_id).toBe(choice);expect(task.requested_quantity).toBeGreaterThan(0);
+  await page.getByLabel(/I consent to share exactly/).check();await page.getByRole('button',{name:'Publish selected source'}).click();await expect(page.getByRole('button',{name:'Publish selected source'})).toBeDisabled();
+  await expect(page.getByText('Contacting guild server…')).toHaveCount(0);expect(await tasks()).toHaveLength(1);
+  const edit=page.getByRole('group',{name:'Edit shared task',exact:true});await edit.getByLabel('Edit title').fill('My proposed title');
+  await rpc('mutate_task',{p_guild:guild,p_action:'update',p_task:task.id,p_revision:task.revision,p_title:'Other author title',p_status:null,p_source:null,p_checksum:null,p_key:randomUUID()});
+  await edit.getByRole('button',{name:'Save task',exact:true}).click();await page.getByRole('button',{name:'Reload conflicting tasks'}).click();
+  const comparison=page.getByRole('group',{name:'Review confirmed conflict'});await expect(comparison).toContainText('Other author title');await expect(comparison).toContainText('My proposed title');await expect(comparison.getByRole('button',{name:'Confirm and reapply'})).toBeDisabled();
+  await rpc('mutate_task',{p_guild:guild,p_action:'update',p_task:task.id,p_revision:2,p_title:'Another concurrent edit',p_status:null,p_source:null,p_checksum:null,p_key:randomUUID()});
+  await comparison.getByLabel(/I reviewed current/).check();await comparison.getByRole('button',{name:'Confirm and reapply'}).click();
+  await expect(comparison).toHaveCount(0);await page.getByRole('button',{name:'Reload conflicting tasks'}).click();await expect(comparison).toContainText('Another concurrent edit');await expect(comparison.getByRole('button',{name:'Confirm and reapply'})).toBeDisabled();
+  await comparison.getByLabel(/I reviewed current/).check();await comparison.getByRole('button',{name:'Confirm and reapply'}).click();await expect(page.locator('.guild-tasks')).toContainText('My proposed title');
+  expect((await tasks())[0].revision).toBe(4);expect(mutations.at(-1)!.p_key).not.toBe(mutations.at(-2)!.p_key);expect(mutations.at(-1)!.p_revision).toBe(3);
+  await page.getByLabel('Shared item reference').fill('item:wood');await page.getByLabel('Shared stock quantity').fill('5');
+  await rpc('set_shared_stock',{p_guild:guild,p_item:'item:wood',p_quantity:9,p_revision:0,p_key:randomUUID()});
+  await page.getByRole('button',{name:'Save shared stock'}).click();await page.getByRole('button',{name:'Reload conflicting tasks'}).click();
+  await expect(comparison).toContainText('9');await expect(comparison).toContainText('5');await comparison.getByLabel(/I reviewed current/).check();await comparison.getByRole('button',{name:'Confirm and reapply'}).click();await expect(page.getByText('item:wood: 5 · revision 2',{exact:true})).toBeVisible();
+  await rpc('mutate_task',{p_guild:guild,p_action:'claim',p_task:task.id,p_revision:4,p_title:null,p_status:null,p_source:null,p_checksum:null,p_key:randomUUID()});
+  const claimed = (await tasks())[0];
+  expect(claimed.assignee).toBe(session!.user.id);
+  // A fresh local snapshot changes only the prompt, never the claimed task.
+  await page.evaluate(async()=>{const {workspaceStore}=await import(String('/src/data/workspace.ts'));const data=await workspaceStore.load();data.goals[0].quantity=4;await workspaceStore.save(data);});
+  await page.reload();await login();await page.getByLabel('Selected guild').selectOption(guild);await expect(page.getByText(/Local source quantity changed:/)).toBeVisible();expect((await tasks())[0].requested_quantity).toBe(task.requested_quantity);
+  // A changed snapshot cannot silently deduplicate into the old active task.
+  await page.getByLabel('Personal source to copy').selectOption(choice!);
+  await page.getByLabel(/I consent to share exactly/).check();
+  await page.getByRole('button',{name:'Publish selected source'}).click();
+  await page.getByRole('button',{name:'Reload conflicting tasks'}).click();
+  await expect(comparison.getByRole('button',{name:'Confirm and reapply'})).toBeDisabled();
+  await comparison.getByRole('button',{name:'Review existing active task'}).click();
+  await expect(page.locator(`#guild-task-${task.id}`)).toBeFocused();
+  expect(await tasks()).toHaveLength(1);
+  await expect(page.getByRole('button',{name:'Apply local source snapshot'})).toBeDisabled();await page.getByLabel(/I coordinated with the assignee/).check();await page.getByRole('button',{name:'Apply local source snapshot'}).click();await expect(page.getByText(/Local source quantity changed:/)).toHaveCount(0);
+  const updated=(await tasks())[0];expect(updated.requested_quantity).toBeGreaterThan(task.requested_quantity!);expect(updated.title).toBe('My proposed title');expect(updated.assignee).toBe(claimed.assignee);expect(updated.status).toBe(claimed.status);expect(updated.delivered_quantity).toBe(task.delivered_quantity);
+  await page.evaluate(async()=>{const {workspaceStore}=await import(String('/src/data/workspace.ts'));const data=await workspaceStore.load();data.goals=[];await workspaceStore.save(data);});
+  await page.reload();await login();await page.getByLabel('Selected guild').selectOption(guild);await expect(page.getByText(/Local source removed, completed/)).toBeVisible();expect(await tasks()).toHaveLength(1);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect(errors).toEqual([]);
+  // Offline refresh disables publication, without enqueueing any mutation.
+  const beforeOffline = mutations.length;
+  await page.context().setOffline(true);
+  await page.getByRole('button',{name:'Refresh from server'}).click();
+  await expect(page.getByText(/Disconnected \/ read-only:/)).toBeVisible();
+  await expect(page.getByRole('button',{name:'Save shared stock'})).toBeDisabled();
+  expect(mutations).toHaveLength(beforeOffline);
+  await page.context().setOffline(false);
+  await page.getByRole('button',{name:'Refresh from server'}).click();
+  await expect(page.getByText('Loaded from server. No background sync.',{exact:true})).toBeVisible();
+  // A before-only owner activity must expose its change details.
+  page.on('dialog', dialog => dialog.accept());
+  await page.getByRole('button',{name:'Issue 24-hour invitation'}).click();
+  await page.getByRole('button',{name:/^Revoke invitation /}).click();
+  await expect(page.getByRole('button',{name:/^Revoke invitation /})).toHaveCount(0);
+  const activity = await rpc('guild_digest',{p_guild:guild});
+  const revoked = activity.find((event:{details?:{before?:unknown;after?:unknown}}) => event.details?.before != null && event.details.after == null);
+  expect(revoked).toBeTruthy();
+  const ownerEvent = page.locator('li').filter({hasText:revoked.details.summary});
+  await expect(ownerEvent.getByText('Change details',{exact:true})).toBeVisible();
+  await ownerEvent.getByText('Change details',{exact:true}).click();
+  await expect(ownerEvent.locator('pre')).toContainText('"before"');
+  // Real member revocation purges loaded private data on explicit refresh.
+  const memberEmail = `member-${suffix}@example.test`;
+  const memberResponse = await fetch(`${authUrl}/signup`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:memberEmail,password})});
+  expect(memberResponse.ok).toBe(true);
+  const member = await memberResponse.json();
+  const invitation = await rpc('create_invite',{p_guild:guild,p_hours:24});
+  const joined = await fetch(`${restUrl}/rpc/redeem_invite`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${member.access_token}`},body:JSON.stringify({p_token:invitation,p_accept:true})});
+  expect(joined.ok).toBe(true);
+  const ownerSession = session!;
+  await page.getByRole('button',{name:'Sign out',exact:true}).click();
+  await expect(page.locator('.guild-tasks')).toHaveCount(0);
+  await page.getByLabel(/I trust both endpoints/).check();
+  await page.getByLabel('Email',{exact:true}).fill(memberEmail);
+  await page.getByLabel('Password',{exact:true}).fill(password);
+  await page.getByRole('button',{name:'Sign in',exact:true}).click();
+  await page.getByLabel('Selected guild').selectOption(guild);
+  await expect(page.locator('.guild-tasks > li')).toHaveCount(1);
+  const removed = await fetch(`${restUrl}/rpc/remove_member`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${ownerSession.access_token}`},body:JSON.stringify({p_guild:guild,p_user:member.user.id})});
+  expect(removed.ok).toBe(true);
+  await page.getByRole('button',{name:'Refresh from server'}).click();
+  await expect(page.getByText('Guild membership is no longer available. Private data cleared.',{exact:true})).toBeVisible();
+  await expect(page.locator('.guild-tasks')).toHaveCount(0);
+  await expect(page.getByText('item:wood: 5 · revision 2',{exact:true})).toHaveCount(0);
+  expect(errors).toEqual([]);
+  await page.getByRole('button',{name:'Sign out',exact:true}).click();await expect(page.locator('.guild-tasks')).toHaveCount(0);
+  await page.close();
+});

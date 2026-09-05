@@ -52,7 +52,7 @@ export default function App() {
         {error&&<p role="alert">{error}</p>}
         {!data&&!error&&<p role="status">Loading local workspace…</p>}
         {destination!=='Guild'&&<p role="status" aria-live="polite">{busy?'Saving…':data?'Saved in this browser':''}</p>}
-        {destination==='Guild'&&<Suspense fallback={<p role="status">Loading guild interface…</p>}><GuildWorkspace/></Suspense>}
+        {destination==='Guild'&&<Suspense fallback={<p role="status">Loading guild interface…</p>}><GuildWorkspace workspace={data}/></Suspense>}
         {data&&destination!=='Guild'&&<fieldset disabled={busy} className="workspace">
           {destination==='Today'&&<Today data={data} update={update}/>}
           {destination==='Craft'&&<div className="stack"><Craft data={data} update={update}/><Queue data={data} update={update}/><Inventory data={data} update={update}/></div>}
@@ -60,7 +60,7 @@ export default function App() {
           {destination==='Bases'&&<BaseWorkspace onTargetSpecies={id=>{setTargetSpecies(id);window.location.hash='#/breeding';}}/>}
           {destination==='Settings'&&<div className="stack"><Settings data={data} update={update}/><PalBackupPanel/></div>}
         </fieldset>}
-        <footer className="page-footer"><span>Made for your next session, not another feed.</span><span>Unofficial fan companion · Not affiliated with Pocketpair</span></footer>
+        <footer className="page-footer"><span>Made for your next session, not another feed.</span><span>Unofficial fan companion · Not affiliated with Pocketpair</span><a href="/attribution.html">Data sources and licenses</a></footer>
       </main>
     </div>
   );

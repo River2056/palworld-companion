@@ -3,16 +3,25 @@ import { ApiError, GuildClient, localEndpoints, TaskRetry, validateEndpoint } fr
 import type { Activity, Endpoints, Guild, Member, Session, Task, TaskInput } from './client';
 import './guild.css';
 import { TaskDetails } from './TaskDetails';
+import type { Workspace } from '../../data/workspace';
+import { publicationSources } from './publication';
+import { SourceChangePrompt } from './SourceChangePrompt';
+import { PublicationPicker } from './PublicationPicker';
+import { ConflictComparison } from './ConflictComparison';
+import { reapplyTask, reapplyStock, type RejectedProposal } from './conflicts';
 import { StockRetry } from './client';
 import type { SharedStock, PendingInvite, StockInput } from './client';
 
-export interface GuildWorkspaceProps { draft?: { title: string; source?: string; checksum?: string; requirement?: string } }
+export interface GuildWorkspaceProps { workspace?: Workspace; draft?: { title: string; source?: string; checksum?: string; requirement?: string } }
 const settingsKey = 'palworld.guild.endpoints';
 function initialEndpoints(): Endpoints {
   try { const saved = JSON.parse(localStorage.getItem(settingsKey) || 'null'); if (saved) return { authUrl: validateEndpoint(saved.authUrl), restUrl: validateEndpoint(saved.restUrl) }; } catch { /* Invalid or unavailable storage: use safe local defaults. */ }
   return localEndpoints;
 }
-export function GuildWorkspace({ draft }: GuildWorkspaceProps = {}) {
+export function GuildWorkspace({ draft, workspace }: GuildWorkspaceProps = {}) {
+  let sources: ReturnType<typeof publicationSources> = [];
+  let sourceError = false;
+  try { if (workspace) sources = publicationSources(workspace); } catch { sourceError = true; }
   const [endpoints, setEndpoints] = useState(initialEndpoints);
   const [approved, setApproved] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
@@ -40,6 +49,8 @@ export function GuildWorkspace({ draft }: GuildWorkspaceProps = {}) {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [conflict, setConflict] = useState(false);
+  const [proposal,setProposal] = useState<RejectedProposal|null>(null);
+  const [compared,setCompared] = useState(false);
   const [disconnected, setDisconnected] = useState(false);
   const retry = useRef(new TaskRetry());
   const lock = useRef(false);
@@ -47,6 +58,7 @@ export function GuildWorkspace({ draft }: GuildWorkspaceProps = {}) {
   const owner = members.some(m => m.user_id === session?.user.id && m.role === 'owner');
   const pending = !!retry.current.pending || !!stockRetry.current.pending;
   function clearPrivateState() {
+    setProposal(null); setCompared(false);
     setStock([]); setInvites([]); setRename(''); setItem(''); setQuantity(0); stockRetry.current = new StockRetry();
     setGuild(''); setTasks([]); setMembers([]); setDigest([]); setIssuedInvite('');
     setPublish(false); setTitle(''); setInvite(''); setAccept(false); setConflict(false);
@@ -79,7 +91,7 @@ export function GuildWorkspace({ draft }: GuildWorkspaceProps = {}) {
     }) as [Task[], Member[], Activity[], SharedStock[]];
     const nextInvites = nextMembers.some(m => m.user_id === session?.user.id && m.role === 'owner') ? await c.rpc<PendingInvite[]>('list_pending_invites', { p_guild: id }) : [];
     setStock(nextStock); setInvites(nextInvites);
-    setTasks(nextTasks); setMembers(nextMembers); setDigest(nextDigest); setConflict(false);
+    setTasks(nextTasks); setMembers(nextMembers); setDigest(nextDigest); setCompared(true);
   }
   async function refresh(c = client(), id = guild) {
     const list = await c.guilds(); setGuilds(list);
@@ -105,7 +117,10 @@ export function GuildWorkspace({ draft }: GuildWorkspaceProps = {}) {
     if (id) await load(client(), id);
   }
   async function mutate(input?: TaskInput) {
-    await retry.current.send(client(), input);
+    const attempted = input ?? retry.current.pending;
+    try { await retry.current.send(client(), input); }
+    catch(e) { if(e instanceof ApiError && e.conflict && attempted) { setProposal({kind:'task',input:{...attempted}}); setCompared(false); } throw e; }
+    setProposal(null); setConflict(false);
     setNotice('Task saved on server.');
     await load(client(), guild);
   }
@@ -113,7 +128,10 @@ export function GuildWorkspace({ draft }: GuildWorkspaceProps = {}) {
     return { p_guild: guild, p_action: action, p_task: task?.id ?? null, p_revision: task?.revision ?? null, p_title: null, p_status: null, p_source: null, p_checksum: null, p_key: crypto.randomUUID(), ...values };
   }
   async function saveStock(value?: StockInput) {
-    await stockRetry.current.send(client(), value);
+    const attempted = value ?? stockRetry.current.pending;
+    try { await stockRetry.current.send(client(), value); }
+    catch(e) { if(e instanceof ApiError && e.conflict && attempted) { setProposal({kind:'stock',input:{...attempted}}); setCompared(false); } throw e; }
+    setProposal(null); setConflict(false);
     await load(client(), guild); setNotice('Shared stock saved on server.');
   }
   async function logout() {
@@ -143,7 +161,12 @@ export function GuildWorkspace({ draft }: GuildWorkspaceProps = {}) {
     </fieldset></form> : <>
       <div className="guild-toolbar"><span>Signed in as {session.user.email || email}</span><button disabled={busy} onClick={() => void run(logout, true)}>Sign out</button><button disabled={busy} onClick={() => void run(() => refresh(), true)}>Refresh from server</button></div>
       {retry.current.pending && <div role="status"><p>One task request awaits confirmation. Its original payload and idempotency key are held in memory; keep this page open.</p><button disabled={busy || disconnected} onClick={() => void run(() => mutate())}>Retry exact task request</button></div>}
-      {conflict && <div role="alert">Task or stock conflict, or source checksum changed. Reload before editing again; changed source plans require explicit reconfirmation.<button disabled={busy} onClick={() => void run(() => refresh(), true)}>Reload conflicting tasks</button></div>}
+      {conflict && <div role="alert">Task or stock conflict, or source checksum changed. Reload before comparing; no automatic reapply.<button disabled={busy} onClick={() => void run(() => refresh(), true)}>Reload conflicting tasks</button></div>}
+      {proposal && compared && guild && <ConflictComparison key={JSON.stringify([proposal,tasks,stock])} proposal={proposal} tasks={tasks} stock={stock} owner={owner} user={session.user.id} disabled={busy || disconnected || pending} onDiscard={()=>{setProposal(null);setConflict(false);}} onConfirm={()=>void run(async()=>{
+        if(proposal.input.p_guild!==guild) throw new Error('Guild changed; discard this proposal.');
+        if(proposal.kind==='stock') await saveStock(reapplyStock(proposal.input,stock.find(s=>s.item_id===proposal.input.p_item)));
+        else { const latest=tasks.find(t=>t.id===proposal.input.p_task); if(!latest) throw new Error('Task no longer available.'); await mutate(reapplyTask(proposal.input,latest,true)); }
+      })}/> }
       <fieldset disabled={busy || disconnected || pending}><legend>Your guilds</legend><label>Selected guild<select value={guild} onChange={e => void run(() => select(e.target.value))}><option value="">Choose a guild</option>{guilds.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}</select></label>
         <form onSubmit={e => { e.preventDefault(); void run(async () => { const id = await client().rpc<string>('create_guild', { p_name: name.trim() }); setName(''); await refresh(client(), ''); await select(id); }); }}><label>New guild name<input required maxLength={100} value={name} onChange={e => setName(e.target.value)} /></label><button disabled={!name.trim()}>Create guild</button></form>
         <form onSubmit={e => { e.preventDefault(); void run(async () => { const id = await client().rpc<string>('redeem_invite', { p_token: invite.trim(), p_accept: accept }); setInvite(''); setAccept(false); await refresh(client(), ''); await select(id); }); }}><label>Invitation token<input required value={invite} onChange={e => setInvite(e.target.value)} autoComplete="off" /></label><label className="guild-check"><input type="checkbox" checked={accept} onChange={e => setAccept(e.target.checked)} />I accept this invitation and choose to join this shared guild.</label><button disabled={!accept || !invite.trim()}>Accept invitation</button></form>
@@ -151,6 +174,8 @@ export function GuildWorkspace({ draft }: GuildWorkspaceProps = {}) {
       {guild && <><h3>{guilds.find(g => g.id === guild)?.name || 'Selected guild'}</h3><p>Your role: {owner ? 'owner' : members.length ? 'member' : 'not loaded'}</p>
         {owner && <div><button disabled={busy || disconnected || pending} onClick={() => void run(async () => { setIssuedInvite(await client().rpc<string>('create_invite', { p_guild: guild, p_hours: 24 })); await load(client(), guild); })}>Issue 24-hour invitation</button>{issuedInvite && <label>Single-use token — share privately<input readOnly value={issuedInvite} onFocus={e => e.target.select()} /></label>}</div>}
         <form onSubmit={e => { e.preventDefault(); void run(async () => { await mutate(input('create', undefined, { p_title: title.trim() })); setTitle(''); }); }}><fieldset disabled={busy || disconnected || pending || conflict}><legend>Create shared task</legend><label>Shared task title<input required maxLength={200} value={title} onChange={e => setTitle(e.target.value)} /></label><button disabled={!title.trim()}>Create shared task</button></fieldset></form>
+        {sourceError && <p role="alert">Local allocation could not be calculated. Publication and source comparison are unavailable.</p>}
+        {workspace && !sourceError && <PublicationPicker key={guild} guild={guild} sources={sources} disabled={busy || disconnected || pending || conflict} onPublish={source => void run(() => mutate(input('create', undefined, {p_title:source.title,p_type:source.kind==='pin'?'craft':'gather',p_description:'',p_status:'open',p_requested:source.quantity,p_delivered:0,p_source:source.source,p_source_requirement:source.requirement,p_checksum:source.checksum})))}/>}
         {draft && <fieldset disabled={busy || disconnected || pending || conflict}><legend>Publish personal draft explicitly</legend><p>{draft.title}</p><p>Only title, source identifier, requirement identity and checksum will be shared with this guild.</p><label className="guild-check"><input type="checkbox" checked={publish} onChange={e => setPublish(e.target.checked)} />Publish this draft to the selected guild</label><button disabled={!publish || !draft.title.trim() || draft.title.length > 200 || (draft.source?.length ?? 0) > 200 || (draft.checksum?.length ?? 0) > 128 || (draft.requirement?.length ?? 0) > 300} onClick={() => void run(async () => { await mutate(input('create', undefined, { p_title: draft.title, p_source: draft.source ?? null, p_checksum: draft.checksum ?? null, p_source_requirement: draft.requirement ?? null })); setPublish(false); })}>Publish draft</button></fieldset>}
         <h4>Members</h4><ul>{members.map(m => <li key={m.user_id}>{m.user_id} · {m.role}{owner && m.role !== 'owner' && <button disabled={busy || disconnected || pending} onClick={() => { if (window.confirm(`Remove member ${m.user_id}? Active claims will be released.`)) void run(async () => { await client().rpc('remove_member', { p_guild: guild, p_user: m.user_id }); await load(client(), guild); }); }}>Remove member {m.user_id}</button>}</li>)}</ul>
         {owner && <fieldset disabled={busy || disconnected || pending}><legend>Owner management</legend><form onSubmit={e => { e.preventDefault(); void run(async () => { await client().rpc('rename_guild', { p_guild: guild, p_name: rename.trim() }); await refresh(); setRename(''); }); }}><label>Rename guild<input required maxLength={100} value={rename} onChange={e => setRename(e.target.value)} /></label><button disabled={!rename.trim()}>Save guild name</button></form><h4>Pending invitations</h4><p>Tokens are only shown when issued; this list never exposes tokens or hashes.</p><ul>{invites.map(i => <li key={i.id}>{i.id} · expires {new Date(i.expires_at).toLocaleString()}<button onClick={() => { if (window.confirm('Revoke this invitation?')) void run(async () => { await client().rpc('revoke_invite', { p_guild: guild, p_invite: i.id }); setIssuedInvite(''); await load(client(), guild); }); }}>Revoke invitation {i.id}</button></li>)}</ul></fieldset>}
@@ -158,8 +183,8 @@ export function GuildWorkspace({ draft }: GuildWorkspaceProps = {}) {
         {stockRetry.current.pending && <div role="status">One stock request awaits confirmation. Keep this page open.<button disabled={busy || disconnected} onClick={() => void run(() => saveStock())}>Retry exact stock request</button></div>}
         <form onSubmit={e => { e.preventDefault(); if (!Number.isSafeInteger(quantity) || quantity < 0) return; void run(() => saveStock({ p_guild: guild, p_item: item.trim(), p_quantity: quantity, p_revision: stock.find(s => s.item_id === item.trim())?.revision ?? 0, p_key: crypto.randomUUID() })); }}><fieldset disabled={busy || disconnected || pending || conflict}><legend>Set shared stock</legend><label>Shared item reference<input required maxLength={200} value={item} onChange={e => setItem(e.target.value)} /></label><label>Shared stock quantity<input type="number" min={0} max={Number.MAX_SAFE_INTEGER} step={1} value={quantity} onChange={e => setQuantity(e.target.valueAsNumber)} /></label><button disabled={!item.trim() || !Number.isSafeInteger(quantity) || quantity < 0}>Save shared stock</button></fieldset></form>
         <details><summary>Create task with details</summary><TaskDetails disabled={busy || disconnected || pending || conflict} onSave={values => void run(() => mutate(input('create', undefined, values)))} /></details>
-        <h4>Shared tasks</h4>{!tasks.length && <p>No shared tasks loaded.</p>}<ul className="guild-tasks">{tasks.map(task => <li key={`${task.id}:${task.revision}`}><TaskEditor task={task} editable={owner || task.assignee === session.user.id} disabled={busy || disconnected || pending || conflict} onClaim={() => void run(() => mutate(input('claim', task)))} onSave={values => void run(() => mutate(input('update', task, values)))} /></li>)}</ul>
-        <h4>Since last seen</h4><p>{digest.length ? `${digest.length} unread events` : 'No unread activity loaded.'}</p><ul>{digest.map(event => <li key={event.id}>{event.details?.summary || event.kind} · {new Date(event.created_at).toLocaleString()} · Actor: {event.actor}{event.task_id && <> · Task: {event.task_id}</>}{event.details?.after != null && <details><summary>Change details</summary><pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{JSON.stringify({ actor: event.actor, before: event.details.before, after: event.details.after }, null, 2)}</pre></details>}</li>)}</ul><button disabled={busy || disconnected || pending || !digest.length} onClick={() => void run(async () => { const through = digest[digest.length - 1].id; await client().rpc('mark_seen', { p_guild: guild, p_through_id: through }); await load(client(), guild); setNotice('Displayed activity marked seen.'); })}>Mark displayed activity seen</button>
+        <h4>Shared tasks</h4>{!tasks.length && <p>No shared tasks loaded.</p>}<ul className="guild-tasks">{tasks.map(task => <li id={`guild-task-${task.id}`} tabIndex={-1} key={`${task.id}:${task.revision}`}>{workspace && !sourceError && <SourceChangePrompt key={JSON.stringify([task.id,task.revision,sources])} task={task} sources={sources} editable={owner || task.assignee===session.user.id} disabled={busy || disconnected || pending || conflict} onSave={fields=>void run(()=>mutate(input('update',task,fields)))}/>}<TaskEditor task={task} editable={owner || task.assignee === session.user.id} disabled={busy || disconnected || pending || conflict} onClaim={() => void run(() => mutate(input('claim', task)))} onSave={values => void run(() => mutate(input('update', task, values)))} /></li>)}</ul>
+        <h4>Since last seen</h4><p>{digest.length ? `${digest.length} unread events` : 'No unread activity loaded.'}</p><ul>{digest.map(event => <li key={event.id}>{event.details?.summary || event.kind} · {new Date(event.created_at).toLocaleString()} · Actor: {event.actor}{event.task_id && <> · Task: {event.task_id}</>}{(event.details?.before != null || event.details?.after != null) && <details><summary>Change details</summary><pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{JSON.stringify({ actor: event.actor, before: event.details.before, after: event.details.after }, null, 2)}</pre></details>}</li>)}</ul><button disabled={busy || disconnected || pending || !digest.length} onClick={() => void run(async () => { const through = digest[digest.length - 1].id; await client().rpc('mark_seen', { p_guild: guild, p_through_id: through }); await load(client(), guild); setNotice('Displayed activity marked seen.'); })}>Mark displayed activity seen</button>
       </>}
     </>}
   </section>;

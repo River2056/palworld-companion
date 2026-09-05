@@ -1,0 +1,17 @@
+import { afterEach, expect, it, vi } from 'vitest';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { PublicationPicker } from './PublicationPicker';
+afterEach(cleanup);
+it('requires selection and exact-preview consent again after source or guild changes', () => {
+ const onPublish=vi.fn(); const source={kind:'pin' as const,title:'Craft test',source:'item:test',requirement:'goal:one',checksum:'quantity-v1:2',quantity:2};
+ const view=render(<PublicationPicker guild="one" sources={[source]} disabled={false} onPublish={onPublish}/>);
+ expect(screen.queryByRole('button',{name:'Publish selected source'})).toBeNull();
+ fireEvent.change(screen.getByLabelText('Personal source to copy'),{target:{value:'goal:one'}});
+ expect(screen.getByText(/item:test/)).toBeVisible();
+ expect(screen.getByRole('button',{name:'Publish selected source'})).toBeDisabled();
+ fireEvent.click(screen.getByLabelText(/I consent to share exactly/));
+ fireEvent.click(screen.getByRole('button',{name:'Publish selected source'}));
+ expect(onPublish).toHaveBeenCalledWith(source);
+ view.rerender(<PublicationPicker guild="two" sources={[source]} disabled={false} onPublish={onPublish}/>);
+ expect(screen.getByRole('button',{name:'Publish selected source'})).toBeDisabled();
+});
