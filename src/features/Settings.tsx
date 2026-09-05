@@ -70,7 +70,10 @@ export function Settings({update}:WorkspaceProps) {
   {error&&<p role="alert">{error}. Existing data is unchanged unless an earlier action succeeded.</p>}
   {preview&&<section aria-label="Import preview">
    <p>Replace crafting scope with {preview.workspace.goals.length} goals, {Object.keys(preview.workspace.stock).length} stock records and {preview.workspace.recent.length} recent selections. Bindings and available snapshot bytes are preserved by schema-2 import. Legacy backups stay legacy-unbound. Snapshot digests are verified on acceptance; missing bytes stay unresolved, never substituted.</p>
-   <ul>{preview.workspace.goals.map(g=><li key={g.id}>{g.item}: {g.quantity} · {g.catalogBinding?.state==='bound'?g.catalogBinding.snapshotId:'legacy-unbound'}</li>)}</ul>
+   <p className="warning">Unknown IDs are retained, not dropped or replaced. This preview lists saved IDs without borrowing current catalog labels; unresolved goals remain blocked until their exact reference is available or legacy adoption is explicitly accepted.</p>
+   <ul aria-label="Imported goals">{preview.workspace.goals.map(g=><li key={g.id}>{g.item}: {g.quantity} · {g.catalogBinding?.state==='bound'?g.catalogBinding.snapshotId:'legacy-unbound'} · ID: {g.id} · Completed: {g.completed} · Notes: {g.notes} · Recipe: {g.recipeId??'unspecified'}{g.recipeOverrides&&` · Overrides: ${JSON.stringify(g.recipeOverrides)}`}{g.catalogBinding?.state==='legacy-unbound'&&g.catalogBinding.claimedVersion&&` · Claimed version: ${g.catalogBinding.claimedVersion}`}</li>)}</ul>
+   <ul aria-label="Imported stock">{Object.entries(preview.workspace.stock).map(([id,quantity])=><li key={id}>{id}: {quantity} · Last updated: {preview.workspace.stockUpdatedAt?.[id]??'Unknown — no recorded manual save'}</li>)}</ul>
+   <p>Recent selections (saved IDs): {preview.workspace.recent.join(', ')||'None'}</p>
    <button disabled={reading||saving} onClick={()=>{void confirmImport();}}>Confirm replace</button>
    <button disabled={saving} onClick={invalidateConsent}>Cancel import</button>
   </section>}

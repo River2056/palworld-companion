@@ -9,8 +9,17 @@ test('legacy inventory gains a manual timestamp; history reopens without changin
  await page.goto('/#/settings');
  await page.getByRole('textbox',{name:'Backup JSON',exact:true}).fill(JSON.stringify(initial));
  await page.getByRole('button',{name:'Preview import'}).click();
- await page.getByRole('button',{name:'Confirm replace workspace'}).click();
+ await page.getByRole('button',{name:'Confirm replace'}).click();
  await expect(page.getByRole('region',{name:'Import preview'})).toHaveCount(0);
+ // Legacy IDs must not become runnable under silently substituted rules.
+ await page.getByRole('link',{name:'Craft',exact:true}).click();
+ await expect(page.getByRole('button',{name:'Complete arrow',exact:true})).toBeDisabled();
+ await page.getByRole('link',{name:'Settings',exact:true}).click();
+ await page.getByRole('checkbox',{name:'I acknowledge applying current rules to legacy plans, not recovering history',exact:true}).check();
+ await page.getByRole('button',{name:'Preview catalog migration',exact:true}).click();
+ await expect(page.getByRole('region',{name:'Catalog migration preview'})).toContainText('retained-goal');
+ await page.getByRole('button',{name:'Accept catalog migration',exact:true}).click();
+ await expect(page.getByRole('region',{name:'Catalog migration preview'})).toHaveCount(0);
  await page.getByRole('link',{name:'Craft',exact:true}).click();
  const wood = page.getByLabel('Wood stock',{exact:true});
  const woodForm = wood.locator('..').locator('..');
@@ -41,8 +50,11 @@ test('legacy inventory gains a manual timestamp; history reopens without changin
  const downloaded = page.waitForEvent('download');
  await page.getByRole('button',{name:'Export JSON backup'}).click();
  const download = await downloaded;
- const backup = JSON.parse(await readFile((await download.path())!,'utf8'));
- expect(backup.goals).toEqual([{...initial.goals[0],completed:0}]);
+ const envelope = JSON.parse(await readFile((await download.path())!,'utf8'));
+ expect(envelope).toMatchObject({schemaVersion:2,scope:'craft'});
+ const backup = envelope.workspace;
+ expect(backup.goals).toHaveLength(1);
+ expect(backup.goals[0]).toMatchObject({...initial.goals[0],completed:0,catalogBinding:{state:'bound',snapshotId:envelope.snapshots[0].id}});
  expect(backup.stock).toEqual({wood:8,stone:4});
  expect(backup.stockUpdatedAt).toEqual({stone:initial.stockUpdatedAt.stone,wood:savedTime});
  expect(errors).toEqual([]);
