@@ -3,6 +3,7 @@ import { workspaceStore, type Workspace } from '../data/workspace';
 import { Craft } from '../features/Craft';
 import { Queue, Inventory } from '../features/Queue';
 import { Settings } from '../features/Settings';
+import type { TodayGuildSummary } from '../features/guild/GuildWorkspace';
 import { Today } from '../features/Today';
 import { PalWorkspace, BaseWorkspace } from '../features/pals';
 import { PalBackupPanel } from '../features/pals/BackupPanel';
@@ -16,6 +17,11 @@ function readDestination(): Destination {
 
 export default function App() {
   const [destination, setDestination] = useState(readDestination);
+  const [guildOpened, setGuildOpened] = useState(() => readDestination() === 'Guild');
+  const [guildSummary, setGuildSummary] = useState<TodayGuildSummary | null>(null);
+  const [guildAuthenticated, setGuildAuthenticated] = useState(false);
+  const [logoutSignal, setLogoutSignal] = useState(0);
+  useEffect(() => { if (destination === 'Guild') setGuildOpened(true); }, [destination]);
   const [targetSpecies, setTargetSpecies] = useState<string>();
   const [data,setData]=useState<Workspace>();
   const [error,setError]=useState('');
@@ -52,9 +58,9 @@ export default function App() {
         {error&&<p role="alert">{error}</p>}
         {!data&&!error&&<p role="status">Loading local workspace…</p>}
         {destination!=='Guild'&&<p role="status" aria-live="polite">{busy?'Saving…':data?'Saved in this browser':''}</p>}
-        {destination==='Guild'&&<Suspense fallback={<p role="status">Loading guild interface…</p>}><GuildWorkspace workspace={data}/></Suspense>}
+        {guildOpened&&<div hidden={destination!=='Guild'} inert={destination!=='Guild'} style={destination!=='Guild'?{display:'none'}:undefined}><Suspense fallback={<p role="status">Loading guild interface…</p>}><GuildWorkspace workspace={data} onSummary={setGuildSummary} onSession={setGuildAuthenticated} logoutSignal={logoutSignal}/></Suspense></div>}
         {data&&destination!=='Guild'&&<fieldset disabled={busy} className="workspace">
-          {destination==='Today'&&<Today data={data} update={update}/>}
+          {destination==='Today'&&<Today data={data} update={update} guildSummary={guildSummary} guildAuthenticated={guildAuthenticated} onGuildLogout={()=>{setGuildSummary(null);setGuildAuthenticated(false);setLogoutSignal(value=>value+1);}}/>}
           {destination==='Craft'&&<div className="stack"><Craft data={data} update={update}/><Queue data={data} update={update}/><Inventory data={data} update={update}/></div>}
           {destination==='Breeding'&&<PalWorkspace initialTargetSpeciesId={targetSpecies}/>}
           {destination==='Bases'&&<BaseWorkspace onTargetSpecies={id=>{setTargetSpecies(id);window.location.hash='#/breeding';}}/>}

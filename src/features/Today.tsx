@@ -1,3 +1,4 @@
+import type { TodayGuildSummary } from './guild/GuildWorkspace';
 import { useEffect, useState } from 'react';
 import { liveQuery } from 'dexie';
 import type { WorkspaceProps } from './Craft';
@@ -62,7 +63,7 @@ function BaseAction({base,personal}:{base:Base;personal:PalSnapshot}) {
  return <article className="card stack"><h3>Base: {base.name||base.id}</h3>{content}<a href="#/bases">Review assignments for {base.name||base.id}</a></article>;
 }
 
-export function Today(props:WorkspaceProps) {
+export function Today(props:WorkspaceProps & { guildSummary?: TodayGuildSummary | null; guildAuthenticated?: boolean; onGuildLogout?: () => void }) {
  const [personal,setPersonal]=useState<PalSnapshot>();
  const [error,setError]=useState('');
  const [attempt,setAttempt]=useState(0);
@@ -83,6 +84,6 @@ export function Today(props:WorkspaceProps) {
  {personal.routes.length?personal.routes.map(route=><BreedingAction key={route.id} route={route} personal={personal}/>):<p>No saved breeding routes. Choose and save a route in Breeding to track its next step.</p>}
  <h3>Base work warnings</h3>{personal.bases.length?personal.bases.map(base=><BaseAction key={base.id} base={base} personal={personal}/>):<p>No bases saved. Add a named base and work slots to assess coverage.</p>}
  </>}<a href="#/breeding">Manage Pals and breeding routes</a><a href="#/bases">Review base assignments</a><p>Settings provides separate crafting and Pal/base backups. Neither includes guild data.</p></section>
- <section className="card stack"><h2>Optional guild planning</h2><p>Guild data is not loaded on Today. Open Guild and sign in explicitly to read shared tasks; personal plans are never published automatically. Leaving Guild clears its in-memory session.</p><a href="#/guild">Open guild workspace</a></section>
+ <section className="card stack" aria-label="Optional guild planning"><h2>Optional guild planning</h2><p>Today never signs in or refreshes Guild automatically. Open Guild, approve trusted endpoints and sign in explicitly. Personal plans are never published automatically.</p>{props.guildSummary?<><h3>{props.guildSummary.guildName}</h3><p>Guild: {props.guildSummary.guildId} · User: {props.guildSummary.userId}</p><p>{props.guildSummary.tasks.length} assigned active tasks · {props.guildSummary.unread} unread events since last seen</p><ul>{props.guildSummary.tasks.map(task=><li key={task.id}>{task.title} · {task.status}</li>)}</ul><p>Last explicitly loaded snapshot, not live. Access changes are checked only when you refresh in Guild. Offline or failed authorization clears this summary.</p></>:<p>No authenticated guild summary loaded. Choose a guild after signing in to see your assigned active tasks and unread activity.</p>}{props.guildAuthenticated&&<><p>Session retained in memory while navigating. Sign out or reload to clear it; no private guild data is saved.</p><button type="button" onClick={props.onGuildLogout}>Sign out of Guild</button></>}<a href="#/guild">Open guild workspace</a><a href="#/guild">Refresh deliberately in Guild</a></section>
  <Queue {...props}/><Shopping data={props.data}/></div>;
 }

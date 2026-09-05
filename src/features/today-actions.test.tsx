@@ -32,7 +32,7 @@ test('nonempty snapshot names next incomplete child/target and named slot gaps w
  expect(await palStore.snapshot()).toEqual(before);
  expect(screen.getByRole('heading',{name:'Pinned craft queue'})).toBeVisible();
  expect(screen.getByRole('region',{name:'Active craft goals'})).toBeVisible();
- expect(screen.getByText(/Guild data is not loaded on Today/)).toBeVisible();
+ expect(screen.getByText(/Today never signs in or refreshes Guild automatically/)).toBeVisible();
 });
 
 test('live local writes update next action and distinguish manual completion from verified offspring',async()=>{

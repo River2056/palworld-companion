@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ApiError, GuildClient, localEndpoints, TaskRetry, validateEndpoint } from './client';
 import type { Activity, Endpoints, Guild, Member, Session, Task, TaskInput } from './client';
 import './guild.css';
@@ -12,13 +12,14 @@ import { reapplyTask, reapplyStock, type RejectedProposal } from './conflicts';
 import { StockRetry } from './client';
 import type { SharedStock, PendingInvite, StockInput } from './client';
 
-export interface GuildWorkspaceProps { workspace?: Workspace; draft?: { title: string; source?: string; checksum?: string; requirement?: string } }
+export interface TodayGuildSummary { guildId: string; guildName: string; userId: string; tasks: Pick<Task, 'id' | 'title' | 'status'>[]; unread: number }
+export interface GuildWorkspaceProps { onSummary?: (summary: TodayGuildSummary | null) => void; onSession?: (authenticated: boolean) => void; logoutSignal?: number; workspace?: Workspace; draft?: { title: string; source?: string; checksum?: string; requirement?: string } }
 const settingsKey = 'palworld.guild.endpoints';
 function initialEndpoints(): Endpoints {
   try { const saved = JSON.parse(localStorage.getItem(settingsKey) || 'null'); if (saved) return { authUrl: validateEndpoint(saved.authUrl), restUrl: validateEndpoint(saved.restUrl) }; } catch { /* Invalid or unavailable storage: use safe local defaults. */ }
   return localEndpoints;
 }
-export function GuildWorkspace({ draft, workspace }: GuildWorkspaceProps = {}) {
+export function GuildWorkspace({ draft, workspace, onSummary, onSession, logoutSignal = 0 }: GuildWorkspaceProps = {}) {
   let sources: ReturnType<typeof publicationSources> = [];
   let sourceError = false;
   try { if (workspace) sources = publicationSources(workspace); } catch { sourceError = true; }
@@ -54,10 +55,24 @@ export function GuildWorkspace({ draft, workspace }: GuildWorkspaceProps = {}) {
   const [disconnected, setDisconnected] = useState(false);
   const retry = useRef(new TaskRetry());
   const lock = useRef(false);
+  const epoch = useRef(0);
+  const scope = useRef({ user: '', guild: '' });
+  const callbacks = useRef({ onSummary, onSession });
+  callbacks.current = { onSummary, onSession };
+  const logoutRef = useRef<() => Promise<void>>(async () => {});
+  const purgeRef = useRef<() => void>(() => {});
+  useEffect(() => { if (logoutSignal) void logoutRef.current(); }, [logoutSignal]);
+  useEffect(() => {
+    const offline = () => { purgeRef.current(); setDisconnected(true); };
+    window.addEventListener('offline', offline);
+    return () => { epoch.current++; window.removeEventListener('offline', offline); callbacks.current.onSummary?.(null); callbacks.current.onSession?.(false); };
+  }, []);
   const client = () => new GuildClient(endpoints, session?.access_token);
   const owner = members.some(m => m.user_id === session?.user.id && m.role === 'owner');
   const pending = !!retry.current.pending || !!stockRetry.current.pending;
   function clearPrivateState() {
+    epoch.current++; callbacks.current.onSummary?.(null);
+    scope.current.guild = '';
     setProposal(null); setCompared(false);
     setStock([]); setInvites([]); setRename(''); setItem(''); setQuantity(0); stockRetry.current = new StockRetry();
     setGuild(''); setTasks([]); setMembers([]); setDigest([]); setIssuedInvite('');
@@ -67,18 +82,26 @@ export function GuildWorkspace({ draft, workspace }: GuildWorkspaceProps = {}) {
   async function run(action: () => Promise<void>, allowDisconnected = false) {
     if (lock.current || (session && disconnected && !allowDisconnected)) return;
     lock.current = true; setBusy(true); setError(''); setNotice('');
+    const generation = epoch.current;
     try { await action(); } catch (e) {
+      if (e instanceof Error && e.message === 'Obsolete guild request') return;
+      if (generation !== epoch.current && (!session || scope.current.user !== session.user.id)) return;
+      callbacks.current.onSummary?.(null);
       setError(e instanceof Error ? e.message : 'Request failed.');
       if (e instanceof ApiError && e.denied) {
         clearPrivateState(); setGuilds([]); setDisconnected(true);
-        if (e.status === 401) { setSession(null); setPassword(''); setApproved(false); }
+        if (e.status === 401) { setSession(null); callbacks.current.onSession?.(false); setPassword(''); setApproved(false); }
       } else if (!(e instanceof ApiError) || e.uncertain) setDisconnected(true);
       if (e instanceof ApiError && e.conflict) setConflict(true);
     } finally { lock.current = false; setBusy(false); }
   }
   async function load(c: GuildClient, id: string) {
+    const generation = epoch.current;
+    const check = () => { if (generation !== epoch.current || scope.current.user !== session?.user.id || scope.current.guild !== id) throw new Error('Obsolete guild request'); };
+    check();
     // Inspect every result: a fast network failure must not mask a confirmed denial.
     const results = await Promise.allSettled([c.tasks(id), c.members(id), c.rpc<Activity[]>('guild_digest', { p_guild: id }), c.stock(id)]);
+    check();
     const denial = results.find(r => r.status === 'rejected' && r.reason instanceof ApiError && r.reason.denied);
     if (denial?.status === 'rejected') throw denial.reason;
     const membership = results[1];
@@ -90,11 +113,16 @@ export function GuildWorkspace({ draft, workspace }: GuildWorkspaceProps = {}) {
       return r.value;
     }) as [Task[], Member[], Activity[], SharedStock[]];
     const nextInvites = nextMembers.some(m => m.user_id === session?.user.id && m.role === 'owner') ? await c.rpc<PendingInvite[]>('list_pending_invites', { p_guild: id }) : [];
+    check();
+    callbacks.current.onSummary?.({ guildId: id, guildName: guilds.find(g => g.id === id)?.name || id, userId: session!.user.id, tasks: nextTasks.filter(t => t.assignee === session?.user.id && !['done', 'cancelled'].includes(t.status)).map(({id,title,status}) => ({id,title,status})), unread: nextDigest.length });
     setStock(nextStock); setInvites(nextInvites);
     setTasks(nextTasks); setMembers(nextMembers); setDigest(nextDigest); setCompared(true);
   }
   async function refresh(c = client(), id = guild) {
-    const list = await c.guilds(); setGuilds(list);
+    const generation = epoch.current;
+    const list = await c.guilds();
+    if (generation !== epoch.current) throw new Error('Obsolete guild request');
+    setGuilds(list);
     if (id && !list.some(g => g.id === id)) {
       clearPrivateState(); setDisconnected(false);
       setNotice('Guild membership is no longer available. Private data cleared.');
@@ -107,13 +135,17 @@ export function GuildWorkspace({ draft, workspace }: GuildWorkspaceProps = {}) {
   async function authenticate() {
     if (!approved) throw new Error('Confirm the endpoint destinations before sending credentials.');
     const c = new GuildClient(endpoints);
-    const result = await c.auth(email, password, signup); setPassword('');
+    const generation = epoch.current;
+    const result = await c.auth(email, password, signup);
+    if (generation !== epoch.current) throw new Error('Obsolete guild request'); setPassword('');
     if (!result.access_token || !result.user?.id) { setNotice('Account request accepted. Check your email, then sign in.'); return; }
-    setSession(result);
+    scope.current.user = result.user.id;
+    setSession(result); callbacks.current.onSession?.(true);
     await refresh(new GuildClient(endpoints, result.access_token), '');
   }
   async function select(id: string) {
     clearPrivateState(); setGuild(id); setTasks([]); setMembers([]); setDigest([]); setIssuedInvite(''); setPublish(false);
+    scope.current.guild = id;
     if (id) await load(client(), id);
   }
   async function mutate(input?: TaskInput) {
@@ -135,14 +167,17 @@ export function GuildWorkspace({ draft, workspace }: GuildWorkspaceProps = {}) {
     await load(client(), guild); setNotice('Shared stock saved on server.');
   }
   async function logout() {
-    const c = client(); clearPrivateState(); setSession(null); setPassword(''); setGuilds([]); setGuild(''); setTasks([]); setMembers([]); setDigest([]); setIssuedInvite(''); setInvite(''); setAccept(false); setApproved(false); retry.current = new TaskRetry();
+    scope.current.user = '';
+    const c = client(); clearPrivateState(); setSession(null); callbacks.current.onSession?.(false); setDisconnected(false); setPassword(''); setGuilds([]); setGuild(''); setTasks([]); setMembers([]); setDigest([]); setIssuedInvite(''); setInvite(''); setAccept(false); setApproved(false); retry.current = new TaskRetry();
     try { await c.logout(); setNotice('Signed out. Session cleared from memory.'); }
     catch { setError('Local session cleared. Server sign-out could not be confirmed; the token expires on the server.'); }
   }
+  logoutRef.current = logout;
+  purgeRef.current = clearPrivateState;
   return <section className="guild-workspace" aria-labelledby="guild-heading">
     <header><h2 id="guild-heading">Guild workspace</h2><p>Optional account and network features. Your personal planner stays local; nothing is published automatically.</p></header>
     <details open={!session}><summary>Connection settings & privacy</summary>
-      <p>Credentials go only to the Auth URL. Your session token and explicitly shared guild data go to the REST URL. Use destinations you trust. Sessions and passwords are never stored; only endpoint URLs are saved.</p>
+      <p>Credentials go only to the Auth URL. Your session token and explicitly shared guild data go to the REST URL. Use destinations you trust. Sessions and passwords are never stored; only endpoint URLs are saved. Leaving Guild retains the session in memory for Today; sign out or reload to clear it. No background polling.</p>
       <fieldset disabled={busy || !!session}><label>Auth URL<input type="url" value={endpoints.authUrl} onChange={e => { setApproved(false); setEndpoints({ ...endpoints, authUrl: e.target.value }); }} /></label>
       <label>REST URL<input type="url" value={endpoints.restUrl} onChange={e => { setApproved(false); setEndpoints({ ...endpoints, restUrl: e.target.value }); }} /></label>
       <button type="button" onClick={() => void run(async () => { const valid = { authUrl: validateEndpoint(endpoints.authUrl), restUrl: validateEndpoint(endpoints.restUrl) }; setEndpoints(valid); try { localStorage.setItem(settingsKey, JSON.stringify(valid)); setNotice('Endpoint URLs saved.'); } catch { setNotice('Storage unavailable; endpoints kept in memory.'); } })}>Save endpoint URLs</button>
