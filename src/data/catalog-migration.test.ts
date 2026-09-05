@@ -38,7 +38,7 @@ test('byte and record budgets reject before hashing, including object Pal import
 });
 test('both scoped exports retain selected and historical bound bytes; malformed IDs and duplicates never write',async()=>{
  const db=store();await db.save({...emptyWorkspace(),goals:[goal]});const pals=new PalStore(db as PalDatabase);const original=(await db.personalMetadata()).selectedCatalog;
- const c=await candidate();const pair=c.pals.breedingPairs[0];await pals.saveRoute({id:'r',targetId:pair.childId,sourceVersion:'label',conditional:true,completed:[],steps:[{id:'s',pairId:pair.id,childId:pair.childId,parents:['owned:a','owned:b'],conditional:true}]});
+ const c=await candidate();const pair=c.pals.breedingPairs[0];const generation=await db.personalMetadata();await pals.saveRoute({id:'r',targetId:pair.childId,sourceVersion:'label',conditional:true,completed:[],steps:[{id:'s',pairId:pair.id,childId:pair.childId,parents:['owned:a','owned:b'],conditional:true}]},{snapshotId:generation.selectedCatalog,revision:generation.revision});
  const p=await previewCatalogMigration(db,c,{goals:{g:'keep'},routes:{r:'keep'}});await acceptCatalogMigration(db,p.id,p.expectedRevision);
  const craft=JSON.parse(await db.export());const pal=createPalBackup(await pals.snapshot());
  expect(craft.snapshots.map((s:{id:string})=>s.id).sort()).toEqual([original,c.id].sort());expect(pal.catalog!.snapshots.map(s=>s.id).sort()).toEqual([original,c.id].sort());
@@ -77,7 +77,7 @@ test('new saves bind; legacy import is explicit unbound; cancel writes nothing a
 });
 test('accept atomic across craft, routes, snapshots and history; retry; rollback preserves later stock/progress/notes',async()=>{
  const db=store();const pals=new PalStore(db as PalDatabase);await db.save({...emptyWorkspace(),goals:[goal],stock:{wood:5},stockUpdatedAt:{wood:'2026-09-06T00:00:00.000Z'}});
- const c=await candidate();const pair=c.pals.breedingPairs[0];await pals.saveRoute({id:'r',targetId:pair.childId,sourceVersion:'original label',conditional:true,completed:[],steps:[{id:'s',pairId:pair.id,childId:pair.childId,parents:['owned:a','owned:b'],conditional:true}]});
+ const c=await candidate();const pair=c.pals.breedingPairs[0];const generation=await db.personalMetadata();await pals.saveRoute({id:'r',targetId:pair.childId,sourceVersion:'original label',conditional:true,completed:[],steps:[{id:'s',pairId:pair.id,childId:pair.childId,parents:['owned:a','owned:b'],conditional:true}]},{snapshotId:generation.selectedCatalog,revision:generation.revision});
  const before=await db.load(),routes=await db.routes.toArray(),meta=await db.personalMetadata();
  const p=await previewCatalogMigration(db,c);p.changes.length=0; // detached public proposal cannot alter accept
  vi.spyOn(db.migrationHistory,'add').mockRejectedValueOnce(new Error('quota'));

@@ -1,0 +1,2 @@
+import {defineConfig,devices} from '@playwright/test';
+export default defineConfig({testDir:'./tests/e2e',testMatch:'pal-storage-fencing.spec.ts',outputDir:'/tmp/palworld-pal-storage-fencing-results',reporter:'list',use:{...devices['Desktop Chrome'],baseURL:'http://127.0.0.1:4294',trace:'retain-on-failure'},webServer:{command:'npm run dev -- --port 4294 --strictPort',url:'http://127.0.0.1:4294',reuseExistingServer:false}});

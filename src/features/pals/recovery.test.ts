@@ -29,7 +29,8 @@ it('preserves stale catalog IDs and keeps manual completion separate from roster
   for(const p of roster)await store.savePal(p);
   const route=enumerateRoutes(roster,'Ronin')[0];
   const saved={...route,sourceVersion:'historical-removed-catalog',completed:route.steps.map(s=>s.id)};
-  await store.saveRoute(saved);
+  const meta=await store.db.personalMetadata();
+  await store.saveRoute(saved,{snapshotId:meta.selectedCatalog,revision:meta.revision});
   const snapshot=await store.snapshot();
   // saveRoute creates a new plan under the selected rules; a label is not historical provenance.
   // Legacy backup adoption is tested separately and stays explicitly legacy-unbound.
