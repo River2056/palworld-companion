@@ -1,0 +1,202 @@
+[
+  {
+    "id": "ingot",
+    "url": "https://palworld.wiki.gg/wiki/Ingot",
+    "expected": {
+      "inputs": [
+        {
+          "item": "ore",
+          "count": 2
+        }
+      ],
+      "output": 1
+    },
+    "sourceExcerpt": "### Crafted From\n\n[![Ingot icon.png](/images/thumb/Ingot_icon.png/110px-Ingot_icon.png?5b35c8)](/wiki/Ingot)\n\nIngot × 1\n\nRequired Materials\n\n[![Ore icon.png](/images/thumb/Ore_icon.png/32px-Ore_icon.png?400bdd)](/wiki/Ore)\n\n[Ore](/wiki/Ore)\n\n2\n\n[![Primitive Furnace icon.png](/images/thumb/Primitive_Furnace_icon.png/32px-Primitive_Furnace_icon.png?5ef4b3)](/wiki/Primitive_Furnace)\n\n10Workload\n\n",
+    "error": null,
+    "scope": "retrieved source only; no patch/in-game verification"
+  },
+  {
+    "id": "nail",
+    "url": "https://palworld.wiki.gg/wiki/Nail",
+    "expected": {
+      "inputs": [
+        {
+          "item": "ingot",
+          "count": 1
+        }
+      ],
+      "output": 2
+    },
+    "sourceExcerpt": "### Crafted From\n\n[![Nail icon.png](/images/thumb/Nail_icon.png/110px-Nail_icon.png?87c6da)](/wiki/Nail)\n\nNail × 2\n\nRequired Materials\n\n[![Ingot icon.png](/images/thumb/Ingot_icon.png/32px-Ingot_icon.png?5b35c8)](/wiki/Ingot)\n\n[Ingot](/wiki/Ingot)\n\n1\n\n[![Primitive Workbench icon.png](/images/thumb/Primitive_Workbench_icon.png/32px-Primitive_Workbench_icon.png?c10d03)](/wiki/Primitive_Workbench)\n\n30Workload\n\n",
+    "error": null,
+    "scope": "retrieved source only; no patch/in-game verification"
+  },
+  {
+    "id": "crossbow",
+    "url": "https://palworld.wiki.gg/wiki/Crossbow",
+    "expected": {
+      "inputs": [
+        {
+          "item": "wood",
+          "count": 50
+        },
+        {
+          "item": "stone",
+          "count": 40
+        },
+        {
+          "item": "ingot",
+          "count": 10
+        },
+        {
+          "item": "nail",
+          "count": 2
+        }
+      ],
+      "output": 1
+    },
+    "sourceExcerpt": "### Crafted From\n\n",
+    "error": null,
+    "scope": "retrieved source only; no patch/in-game verification"
+  },
+  {
+    "id": "charcoal",
+    "url": "https://palworld.wiki.gg/wiki/Charcoal",
+    "expected": {
+      "inputs": [
+        {
+          "item": "wood",
+          "count": 2
+        }
+      ],
+      "output": 1
+    },
+    "sourceExcerpt": "### Crafted From\n\n[![Charcoal icon.png](/images/thumb/Charcoal_icon.png/110px-Charcoal_icon.png?46603b)](/wiki/Charcoal)\n\nCharcoal × 1\n\nRequired Materials\n\n[![Wood icon.png](/images/thumb/Wood_icon.png/32px-Wood_icon.png?f3c826)](/wiki/Wood)\n\n[Wood](/wiki/Wood)\n\n2\n\n[![Primitive Furnace icon.png](/images/thumb/Primitive_Furnace_icon.png/32px-Primitive_Furnace_icon.png?5ef4b3)](/wiki/Primitive_Furnace)\n\n10Workload\n\n",
+    "error": null,
+    "scope": "retrieved source only; no patch/in-game verification"
+  },
+  {
+    "id": "gunpowder",
+    "url": "https://palworld.wiki.gg/wiki/Gunpowder",
+    "expected": {
+      "inputs": [
+        {
+          "item": "charcoal",
+          "count": 1
+        },
+        {
+          "item": "sulfur",
+          "count": 1
+        }
+      ],
+      "output": 1
+    },
+    "sourceExcerpt": "### Crafted From\n\n[![Gunpowder icon.png](/images/thumb/Gunpowder_icon.png/110px-Gunpowder_icon.png?af9b02)](/wiki/Gunpowder)\n\nGunpowder × 1\n\nRequired Materials\n\n[![Charcoal icon.png](/images/thumb/Charcoal_icon.png/32px-Charcoal_icon.png?46603b)](/wiki/Charcoal)\n\n[Charcoal](/wiki/Charcoal)\n\n1\n\n[![Sulfur icon.png](/images/thumb/Sulfur_icon.png/32px-Sulfur_icon.png?3304d5)](/wiki/Sulfur)\n\n[Sulfur](/wiki/Sulfur)\n\n1\n\n[![High Quality Workbench icon.png](/images/thumb/High_Quality_Workbench_icon.png/32px-High_Quality_Workbench_icon.png?3419e8)](/wiki/High_Quality_Workbench)\n\n30Workload\n\n",
+    "error": null,
+    "scope": "retrieved source only; no patch/in-game verification"
+  },
+  {
+    "id": "coarse-ammo",
+    "url": "https://palworld.wiki.gg/wiki/Coarse_Ammo",
+    "expected": {
+      "inputs": [
+        {
+          "item": "ingot",
+          "count": 2
+        },
+        {
+          "item": "gunpowder",
+          "count": 1
+        }
+      ],
+      "output": 20
+    },
+    "sourceExcerpt": "### Crafted From\n\nCoarse Ammo Ã 20\n\nRequired Materials\n\n2\n\n1\n\n400Workload\n\n",
+    "error": null,
+    "scope": "retrieved source only; no patch/in-game verification"
+  },
+  {
+    "id": "arrow",
+    "url": "https://palworld.wiki.gg/wiki/Arrow",
+    "expected": {
+      "inputs": [
+        {
+          "item": "wood",
+          "count": 2
+        },
+        {
+          "item": "stone",
+          "count": 2
+        }
+      ],
+      "output": 10
+    },
+    "sourceExcerpt": "### Crafted From\n\nArrow Ã 3\n\nRequired Materials\n\n1\n\n1\n\n10Workload\n\n",
+    "error": null,
+    "scope": "retrieved source only; no patch/in-game verification"
+  },
+  {
+    "id": "pal-sphere",
+    "url": "https://palworld.wiki.gg/wiki/Pal_Sphere",
+    "expected": {
+      "inputs": [
+        {
+          "item": "paldium-fragment",
+          "count": 1
+        },
+        {
+          "item": "wood",
+          "count": 3
+        },
+        {
+          "item": "stone",
+          "count": 3
+        }
+      ],
+      "output": 1
+    },
+    "sourceExcerpt": "### Crafted From\n\nPal Sphere Ã 1\n\nRequired Materials\n\n1\n\n3\n\n3\n\n3Workload\n\n",
+    "error": null,
+    "scope": "retrieved source only; no patch/in-game verification"
+  },
+  {
+    "id": "cloth",
+    "url": "https://palworld.wiki.gg/wiki/Wool",
+    "expected": {
+      "inputs": [
+        {
+          "item": "wool",
+          "count": 2
+        }
+      ],
+      "output": 1
+    },
+    "sourceExcerpt": "### Crafted From\n\nWool cannot be crafted. \n\n",
+    "error": null,
+    "scope": "retrieved source only; no patch/in-game verification"
+  },
+  {
+    "id": "fire-arrow",
+    "url": "https://palworld.wiki.gg/wiki/Fire_Arrow",
+    "expected": {
+      "inputs": [
+        {
+          "item": "wood",
+          "count": 3
+        },
+        {
+          "item": "stone",
+          "count": 3
+        },
+        {
+          "item": "flame-organ",
+          "count": 1
+        }
+      ],
+      "output": 5
+    },
+    "sourceExcerpt": "### Crafted From\n\nFire Arrow Ã 5\n\nRequired Materials\n\n3\n\n3\n\n1\n\n40Workload\n\n",
+    "error": null,
+    "scope": "retrieved source only; no patch/in-game verification"
+  }
+]

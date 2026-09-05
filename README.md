@@ -1,47 +1,50 @@
 # Palworld Companion
 
-A local-first, unofficial Palworld companion foundation. Dark, responsive React/TypeScript shell with Today, Craft, and Settings destinations. No game data is shipped.
+Local-first, unofficial Palworld planning app. The crafting milestone is implemented; this is not a claim that the full product plan is complete. Today shows the real crafting queue and shortages. Craft supports fuzzy recipe search, finished-unit quantities, direct ingredients, raw-material alternatives, priority pins, notes, manual inventory and progress. Breeding and Bases expose the separately implemented personal workspaces; Guild remains upcoming.
 
 ## Run locally
 
-Use Node.js 20.19+ (verified with 20.20.2) and npm 10.
+Use Node.js 20.19+ and npm 10.
 
 ```sh
 npm ci
 npm run dev
 ```
 
-Open the loopback URL printed by Vite (normally http://127.0.0.1:5173). Development and preview bind to `127.0.0.1`, not the LAN. No deployment or remote service is configured.
+Open the loopback URL printed by Vite (normally http://127.0.0.1:5173). No deployment is configured. No service worker or offline installation is provided: keep the local server running to load/reload the app.
 
 ## Verify
 
 ```sh
-npm run test
+npm run validate:catalog
+npx vitest run src/domain src/data src/app/App.test.tsx src/features/crafting-recovery.test.tsx
 npm run typecheck
 npm run lint
 npm run build
 npx playwright install chromium
-npm run test:e2e
+npx playwright test tests/e2e/crafting.spec.ts tests/e2e/shell.spec.ts
 ```
 
-Vitest uses jsdom and Testing Library; fake-indexeddb is configured for future persistence tests. Playwright starts its own loopback Vite server on port 4173 and exercises desktop Chromium and mobile Chromium emulation, including navigation, history/reload, keyboard focus, no external requests, and horizontal overflow. Screenshots and failure traces are written under ignored `test-results/`.
+`npm test` runs all Vitest suites and `npm run test:e2e` runs all browser suites. Playwright starts a separate loopback Vite server on port 4173, which must be free, and tests desktop Chromium and Pixel 7 mobile emulation. Screenshots and failure traces go to ignored `test-results/`. Direct dependencies are pinned in the lockfile.
 
-Direct dependencies are pinned, with the npm lockfile committed. Dexie and Fuse.js are installed for subsequent persistence/search work, but no storage schema or crafting domain is implemented here.
+## Crafting semantics and data
 
-## Scope and privacy
+- Catalog: **10 reference recipes and 7 leaf materials**, mixed source revisions, **game patch compatibility unverified**. Alternate recipes and station construction costs are excluded. Recipe/acquisition source links and warnings are visible in the UI; originals and attribution remain in `docs/research/`.
+- Goals mean **craft more**: owned final-target stock never cancels a top-level goal. Finished quantities round up to whole recipe batches. Planned excess can serve later demand, separately from owned inventory.
+- Queue order controls shared stock reservations. Owned intermediate stock is consumed before expanding shortages; each unit is reserved once per alternative. Direct and raw lists are alternatives, not additive. This is a deterministic priority plan, not a globally optimal schedule.
+- Completion/partial progress never changes inventory automatically. Update physical stock manually; stale stock produces stale estimates.
+- Dexie persists one personal crafting workspace atomically in IndexedDB: ordered goals, quantities, progress, notes, inventory and recent pinned selections. Use one editing tab at a time; browser storage can be lost.
+- Settings exports crafting JSON and validates an import before explicit replacement confirmation. Unknown recipe/item IDs are retained and shown unresolved. Invalid input does not replace saved data. Reset requires confirmation. **Settings backup/reset covers crafting only**, not the separate Breeding/Base workspace data.
+- No game connection, analytics, automatic progress collection, or account is needed for personal features. No affiliation with or endorsement by Pocketpair.
 
-- Today is an honest empty state. Craft is a clearly labeled, unimplemented workspace. Settings explains data/privacy limitations.
-- Breeding, Base, and Guild are upcoming text labels, not interactive destinations.
-- No account, analytics, cloud sync, game APIs, save-file access, external fonts, or automatic progress collection.
-- This shell currently persists no user progress. Future data entry is manual and browser-local; clearing browser storage may lose it.
-- No service worker or offline installation is provided yet. Keep the local server running to load/reload the app.
-- Catalog validation (`validate:catalog`) is deliberately deferred until an actual catalog and validator exist. There is no placeholder success script.
-- No affiliation with or endorsement by Pocketpair.
+## Layout and remaining scope
 
-## Layout
+- `src/domain/` — catalog validation and pure crafting calculation, with tests
+- `src/data/` — versioned crafting backup validation and transactional Dexie store
+- `src/features/{Craft,Queue,Shopping,Today,Settings}.tsx` — crafting UI
+- `src/features/pals/` — separately maintained breeding/base workspaces
+- `src/app/` — responsive shell, navigation and persistence boundary
+- `tests/e2e/` — real-browser acceptance checks
+- `docs/reviews/crafting-final.md` — scoped review, evidence and remaining limitations
 
-- `src/app/App.tsx` — shell and hash-based destinations (supports history and reload)
-- `src/app/styles.css` — responsive dark dashboard
-- `src/app/App.test.tsx` — user-visible shell tests
-- `tests/e2e/shell.spec.ts` — real-browser checks
-- Root config files — Vite, TypeScript, Vitest, ESLint, and Playwright
+The larger plan still includes richer provenance, catalog migrations/snapshots, dedicated completion history, and shared guild workflows. Do not interpret the reference dataset as complete or current-game verified. Pal reference research and `pal-attribution.md` remain separately maintained.

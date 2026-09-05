@@ -1,0 +1,495 @@
+{
+  "schema_version": 1,
+  "purpose": "attributed source-research records, not a current-game database",
+  "patch_compatibility": "unverified",
+  "verified_game_version": null,
+  "license": "CC-BY-SA-4.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+  "notes": [
+    "Mixed wiki revision reference set; no claim that recipes coexist in any released game patch.",
+    "Inputs are per complete crafting operation; output_count is batch yield.",
+    "Null unlock means not established, not level zero. Stations do not include station construction costs.",
+    "Revision IDs pin wiki articles, not their transcluded recipe templates or game data.",
+    "Some extractor responses were partial or cached. Parent-verified Ingot, Arrow and Pal Sphere facts were supplied directly in task context.",
+    "Arrow canonical extraction also exposed older oldid=31125 with output 3; the selected parent-verified oldid=41963 has output 10. Do not silently substitute."
+  ],
+  "recipes": [
+    {
+      "id": "ingot",
+      "name": "Ingot",
+      "inputs": [
+        {
+          "item": "ore",
+          "count": 2
+        }
+      ],
+      "output_count": 1,
+      "stations": [
+        "Primitive Furnace"
+      ],
+      "stations_scope": "observed supported stations; not an exhaustive upgrade list",
+      "unlock_level": null,
+      "patch_compatibility": "unverified",
+      "source": {
+        "title": "Ingot",
+        "url": "https://palworld.wiki.gg/wiki/Ingot",
+        "oldid": 31174,
+        "revision_url": "https://palworld.wiki.gg/wiki/Ingot?oldid=31174",
+        "revision_evidence": "parent-agent verified page",
+        "retrieved_at": "2026-09-05T19:31:27Z",
+        "attribution": "Palworld Wiki contributors",
+        "license": "CC-BY-SA-4.0"
+      }
+    },
+    {
+      "id": "nail",
+      "name": "Nail",
+      "inputs": [
+        {
+          "item": "ingot",
+          "count": 1
+        }
+      ],
+      "output_count": 2,
+      "stations": [
+        "Primitive Workbench"
+      ],
+      "stations_scope": "observed supported stations; not an exhaustive upgrade list",
+      "unlock_level": 10,
+      "patch_compatibility": "unverified",
+      "source": {
+        "title": "Nail",
+        "url": "https://palworld.wiki.gg/wiki/Nail",
+        "oldid": 31177,
+        "revision_url": "https://palworld.wiki.gg/wiki/Nail?oldid=31177",
+        "revision_evidence": "revision URL discovered in search; recipe fetched from canonical page",
+        "retrieved_at": "2026-09-05T19:31:27Z",
+        "attribution": "Palworld Wiki contributors",
+        "license": "CC-BY-SA-4.0"
+      }
+    },
+    {
+      "id": "crossbow",
+      "name": "Crossbow",
+      "inputs": [
+        {
+          "item": "wood",
+          "count": 50
+        },
+        {
+          "item": "stone",
+          "count": 40
+        },
+        {
+          "item": "ingot",
+          "count": 10
+        },
+        {
+          "item": "nail",
+          "count": 2
+        }
+      ],
+      "output_count": 1,
+      "stations": [
+        "High Quality Workbench"
+      ],
+      "stations_scope": "observed supported stations; not an exhaustive upgrade list",
+      "unlock_level": 13,
+      "patch_compatibility": "unverified",
+      "source": {
+        "title": "Crossbow",
+        "url": "https://palworld.wiki.gg/wiki/Crossbow",
+        "oldid": 38995,
+        "revision_url": "https://palworld.wiki.gg/wiki/Crossbow?oldid=38995",
+        "revision_evidence": "extracted-page-footer",
+        "retrieved_at": "2026-09-05T19:31:27Z",
+        "attribution": "Palworld Wiki contributors",
+        "license": "CC-BY-SA-4.0"
+      },
+      "variant": "Common"
+    },
+    {
+      "id": "charcoal",
+      "name": "Charcoal",
+      "inputs": [
+        {
+          "item": "wood",
+          "count": 2
+        }
+      ],
+      "output_count": 1,
+      "stations": [
+        "Primitive Furnace"
+      ],
+      "stations_scope": "observed supported stations; not an exhaustive upgrade list",
+      "unlock_level": null,
+      "patch_compatibility": "unverified",
+      "source": {
+        "title": "Charcoal",
+        "url": "https://palworld.wiki.gg/wiki/Charcoal",
+        "oldid": 31186,
+        "revision_url": "https://palworld.wiki.gg/wiki/Charcoal?oldid=31186",
+        "revision_evidence": "extracted-page-footer",
+        "retrieved_at": "2026-09-05T19:31:27Z",
+        "attribution": "Palworld Wiki contributors",
+        "license": "CC-BY-SA-4.0"
+      }
+    },
+    {
+      "id": "gunpowder",
+      "name": "Gunpowder",
+      "inputs": [
+        {
+          "item": "charcoal",
+          "count": 1
+        },
+        {
+          "item": "sulfur",
+          "count": 1
+        }
+      ],
+      "output_count": 1,
+      "stations": [
+        "High Quality Workbench"
+      ],
+      "stations_scope": "observed supported stations; not an exhaustive upgrade list",
+      "unlock_level": 21,
+      "patch_compatibility": "unverified",
+      "source": {
+        "title": "Gunpowder",
+        "url": "https://palworld.wiki.gg/wiki/Gunpowder",
+        "oldid": 31143,
+        "revision_url": "https://palworld.wiki.gg/wiki/Gunpowder?oldid=31143",
+        "revision_evidence": "extracted-page-footer",
+        "retrieved_at": "2026-09-05T19:31:27Z",
+        "attribution": "Palworld Wiki contributors",
+        "license": "CC-BY-SA-4.0"
+      }
+    },
+    {
+      "id": "coarse-ammo",
+      "name": "Coarse Ammo",
+      "inputs": [
+        {
+          "item": "ingot",
+          "count": 2
+        },
+        {
+          "item": "gunpowder",
+          "count": 1
+        }
+      ],
+      "output_count": 20,
+      "stations": [
+        "High Quality Workbench",
+        "Weapon Workbench",
+        "Production Assembly Line",
+        "Weapon Assembly Line",
+        "Production Assembly Line II",
+        "Weapon Assembly Line II"
+      ],
+      "stations_scope": "observed supported stations; not an exhaustive upgrade list",
+      "unlock_level": 21,
+      "patch_compatibility": "unverified",
+      "source": {
+        "title": "Coarse Ammo",
+        "url": "https://palworld.wiki.gg/wiki/Coarse_Ammo",
+        "oldid": 41978,
+        "revision_url": "https://palworld.wiki.gg/wiki/Coarse_Ammo?oldid=41978",
+        "revision_evidence": "extracted-page-footer",
+        "retrieved_at": "2026-09-05T19:31:27Z",
+        "attribution": "Palworld Wiki contributors",
+        "license": "CC-BY-SA-4.0"
+      }
+    },
+    {
+      "id": "arrow",
+      "name": "Arrow",
+      "inputs": [
+        {
+          "item": "wood",
+          "count": 2
+        },
+        {
+          "item": "stone",
+          "count": 2
+        }
+      ],
+      "output_count": 10,
+      "stations": [
+        "Primitive Workbench"
+      ],
+      "stations_scope": "observed supported stations; not an exhaustive upgrade list",
+      "unlock_level": 3,
+      "patch_compatibility": "unverified",
+      "source": {
+        "title": "Arrow",
+        "url": "https://palworld.wiki.gg/wiki/Arrow",
+        "oldid": 41963,
+        "revision_url": "https://palworld.wiki.gg/wiki/Arrow?oldid=41963",
+        "revision_evidence": "parent-agent verified page",
+        "retrieved_at": "2026-09-05T19:31:27Z",
+        "attribution": "Palworld Wiki contributors",
+        "license": "CC-BY-SA-4.0"
+      }
+    },
+    {
+      "id": "pal-sphere",
+      "name": "Pal Sphere",
+      "inputs": [
+        {
+          "item": "paldium-fragment",
+          "count": 1
+        },
+        {
+          "item": "wood",
+          "count": 3
+        },
+        {
+          "item": "stone",
+          "count": 3
+        }
+      ],
+      "output_count": 1,
+      "stations": [
+        "Primitive Workbench"
+      ],
+      "stations_scope": "observed supported stations; not an exhaustive upgrade list",
+      "unlock_level": 2,
+      "patch_compatibility": "unverified",
+      "source": {
+        "title": "Pal Sphere",
+        "url": "https://palworld.wiki.gg/wiki/Pal_Sphere",
+        "oldid": 31056,
+        "revision_url": "https://palworld.wiki.gg/wiki/Pal_Sphere?oldid=31056",
+        "revision_evidence": "parent-agent verified page",
+        "retrieved_at": "2026-09-05T19:31:27Z",
+        "attribution": "Palworld Wiki contributors",
+        "license": "CC-BY-SA-4.0"
+      }
+    },
+    {
+      "id": "cloth",
+      "name": "Cloth",
+      "inputs": [
+        {
+          "item": "wool",
+          "count": 2
+        }
+      ],
+      "output_count": 1,
+      "stations": [
+        "Primitive Workbench"
+      ],
+      "stations_scope": "observed supported stations; not an exhaustive upgrade list",
+      "unlock_level": 4,
+      "patch_compatibility": "unverified",
+      "source": {
+        "title": "Wool",
+        "url": "https://palworld.wiki.gg/wiki/Wool",
+        "oldid": 44444,
+        "revision_url": "https://palworld.wiki.gg/wiki/Wool?oldid=44444",
+        "revision_evidence": "extracted-page-footer",
+        "retrieved_at": "2026-09-05T19:31:27Z",
+        "attribution": "Palworld Wiki contributors",
+        "license": "CC-BY-SA-4.0",
+        "section": "Crafting / Used In / Cloth"
+      },
+      "unlock_source": {
+        "title": "Cloth",
+        "url": "https://palworld.wiki.gg/wiki/Cloth",
+        "oldid": null,
+        "revision_url": null,
+        "revision_evidence": "not exposed by extraction",
+        "retrieved_at": "2026-09-05T19:31:27Z",
+        "attribution": "Palworld Wiki contributors",
+        "license": "CC-BY-SA-4.0"
+      },
+      "notes": "Recipe sourced from Wool Used In; unlock from Cloth page, which displays an update-needed banner."
+    },
+    {
+      "id": "fire-arrow",
+      "name": "Fire Arrow",
+      "inputs": [
+        {
+          "item": "wood",
+          "count": 3
+        },
+        {
+          "item": "stone",
+          "count": 3
+        },
+        {
+          "item": "flame-organ",
+          "count": 1
+        }
+      ],
+      "output_count": 5,
+      "stations": [
+        "Primitive Workbench",
+        "High Quality Workbench",
+        "Weapon Workbench",
+        "Production Assembly Line",
+        "Weapon Assembly Line",
+        "Production Assembly Line II",
+        "Weapon Assembly Line II"
+      ],
+      "stations_scope": "observed supported stations; not an exhaustive upgrade list",
+      "unlock_level": 6,
+      "patch_compatibility": "unverified",
+      "source": {
+        "title": "Fire Arrow",
+        "url": "https://palworld.wiki.gg/wiki/Fire_Arrow",
+        "oldid": 41965,
+        "revision_url": "https://palworld.wiki.gg/wiki/Fire_Arrow?oldid=41965",
+        "revision_evidence": "extracted-page-footer",
+        "retrieved_at": "2026-09-05T19:31:27Z",
+        "attribution": "Palworld Wiki contributors",
+        "license": "CC-BY-SA-4.0"
+      }
+    }
+  ],
+  "leaf_materials": [
+    {
+      "id": "wood",
+      "name": "Wood",
+      "acquisition": [
+        "Harvest trees",
+        "Gather ground sticks",
+        "Logging Site with Pals"
+      ],
+      "source": {
+        "title": "Wood",
+        "url": "https://palworld.wiki.gg/wiki/Wood",
+        "oldid": 38840,
+        "revision_url": "https://palworld.wiki.gg/wiki/Wood?oldid=38840",
+        "revision_evidence": "extracted-page-footer",
+        "retrieved_at": "2026-09-05T19:31:27Z",
+        "attribution": "Palworld Wiki contributors",
+        "license": "CC-BY-SA-4.0"
+      },
+      "scope": "selected acquisition options; treated as leaf only in this small catalog",
+      "patch_compatibility": "unverified"
+    },
+    {
+      "id": "stone",
+      "name": "Stone",
+      "acquisition": [
+        "Mine rocks",
+        "Gather loose stone",
+        "Stone Pit with Mining Pals"
+      ],
+      "source": {
+        "title": "Stone",
+        "url": "https://palworld.wiki.gg/wiki/Stone",
+        "oldid": null,
+        "revision_url": null,
+        "revision_evidence": "not exposed by extraction",
+        "retrieved_at": "2026-09-05T19:31:27Z",
+        "attribution": "Palworld Wiki contributors",
+        "license": "CC-BY-SA-4.0"
+      },
+      "scope": "selected acquisition options; treated as leaf only in this small catalog",
+      "patch_compatibility": "unverified"
+    },
+    {
+      "id": "ore",
+      "name": "Ore",
+      "acquisition": [
+        "Mine ore nodes",
+        "Ore Mining Site"
+      ],
+      "source": {
+        "title": "Ore",
+        "url": "https://palworld.wiki.gg/wiki/Ore",
+        "oldid": null,
+        "revision_url": null,
+        "revision_evidence": "not exposed by extraction",
+        "retrieved_at": "2026-09-05T19:31:27Z",
+        "attribution": "Palworld Wiki contributors",
+        "license": "CC-BY-SA-4.0"
+      },
+      "scope": "selected acquisition options; treated as leaf only in this small catalog",
+      "patch_compatibility": "unverified"
+    },
+    {
+      "id": "wool",
+      "name": "Wool",
+      "acquisition": [
+        "Ranch production by Lamball, Cremis or Melpaca",
+        "Drops from wool-bearing Pals"
+      ],
+      "source": {
+        "title": "Wool",
+        "url": "https://palworld.wiki.gg/wiki/Wool",
+        "oldid": 44444,
+        "revision_url": "https://palworld.wiki.gg/wiki/Wool?oldid=44444",
+        "revision_evidence": "extracted-page-footer",
+        "retrieved_at": "2026-09-05T19:31:27Z",
+        "attribution": "Palworld Wiki contributors",
+        "license": "CC-BY-SA-4.0"
+      },
+      "scope": "selected acquisition options; treated as leaf only in this small catalog",
+      "patch_compatibility": "unverified"
+    },
+    {
+      "id": "sulfur",
+      "name": "Sulfur",
+      "acquisition": [
+        "Mine sulfur deposits",
+        "Sulfur Mine"
+      ],
+      "source": {
+        "title": "Sulfur",
+        "url": "https://palworld.wiki.gg/wiki/Sulfur",
+        "oldid": 31454,
+        "revision_url": "https://palworld.wiki.gg/wiki/Sulfur?oldid=31454",
+        "revision_evidence": "extracted-page-footer",
+        "retrieved_at": "2026-09-05T19:31:27Z",
+        "attribution": "Palworld Wiki contributors",
+        "license": "CC-BY-SA-4.0"
+      },
+      "scope": "selected acquisition options; treated as leaf only in this small catalog",
+      "patch_compatibility": "unverified"
+    },
+    {
+      "id": "paldium-fragment",
+      "name": "Paldium Fragment",
+      "acquisition": [
+        "Gather paldium deposits",
+        "Pick up ground fragments"
+      ],
+      "source": {
+        "title": "Paldium Fragment",
+        "url": "https://palworld.wiki.gg/wiki/Paldium_Fragment",
+        "oldid": null,
+        "revision_url": null,
+        "revision_evidence": "not exposed by extraction",
+        "retrieved_at": "2026-09-05T19:31:27Z",
+        "attribution": "Palworld Wiki contributors",
+        "license": "CC-BY-SA-4.0"
+      },
+      "scope": "selected acquisition options; treated as leaf only in this small catalog",
+      "patch_compatibility": "unverified"
+    },
+    {
+      "id": "flame-organ",
+      "name": "Flame Organ",
+      "acquisition": [
+        "Drops from Fire Pals"
+      ],
+      "source": {
+        "title": "Flame Organ",
+        "url": "https://palworld.wiki.gg/wiki/Flame_Organ",
+        "oldid": null,
+        "revision_url": null,
+        "revision_evidence": "not exposed by extraction",
+        "retrieved_at": "2026-09-05T19:31:27Z",
+        "attribution": "Palworld Wiki contributors",
+        "license": "CC-BY-SA-4.0"
+      },
+      "scope": "selected acquisition options; treated as leaf only in this small catalog",
+      "patch_compatibility": "unverified"
+    }
+  ]
+}
