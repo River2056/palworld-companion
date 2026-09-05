@@ -30,7 +30,8 @@ test('nonempty snapshot names next incomplete child/target and named slot gaps w
  const before=await palStore.snapshot();
  await userEvent.click(screen.getByRole('link',{name:`Review saved route for ${speciesName(pair.childId)}`}));
  expect(await palStore.snapshot()).toEqual(before);
- expect(screen.getByText(/No plans yet/)).toBeVisible();
+ expect(screen.getByRole('heading',{name:'Pinned craft queue'})).toBeVisible();
+ expect(screen.getByRole('region',{name:'Active craft goals'})).toBeVisible();
  expect(screen.getByText(/Guild data is not loaded on Today/)).toBeVisible();
 });
 
@@ -91,7 +92,8 @@ test('valid saved coverage is explicitly limited to configured slots',async()=>{
 test('read errors show unknown state, retain crafting, and can retry without writing personal data',async()=>{
  const read=vi.spyOn(palStore,'snapshot').mockRejectedValue(new Error('read denied'));
  show();expect(await screen.findByRole('alert')).toHaveTextContent('Personal progress and coverage are unknown');
- expect(screen.getByText(/No plans yet/)).toBeVisible();
+ expect(screen.getByRole('heading',{name:'Pinned craft queue'})).toBeVisible();
+ expect(screen.getByRole('region',{name:'Active craft goals'})).toBeVisible();
  read.mockRestore();await userEvent.click(screen.getByRole('button',{name:'Retry personal summary'}));
  expect(await screen.findByText(/No saved breeding routes/)).toBeVisible();
  await waitFor(()=>expect(screen.queryByRole('alert')).not.toBeInTheDocument());
