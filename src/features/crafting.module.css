@@ -1,0 +1,5 @@
+.tree { margin-block: 1rem; overflow-wrap: anywhere; }
+.tree ul { padding-inline-start: 1rem; }
+.tree summary { cursor: pointer; }
+.provenance { flex-basis: 100%; min-width: 0; overflow-wrap: anywhere; }
+.provenance ul { padding-inline-start: 1rem; }

@@ -1,0 +1,26 @@
+import { test, expect } from '@playwright/test';
+test('duplicate choice, branch expansion and allocated provenance survive reload',async({page})=>{
+ await page.goto('/#/craft');
+ await page.getByLabel('Search recipes').fill('arrow');
+ await page.getByRole('button',{name:'Select Arrow',exact:true}).click();
+ await page.getByLabel('Desired finished units').fill('11');
+ await page.getByText('Recipe ingredient tree',{exact:true}).click();
+ await page.getByText(/Arrow: 11 units/).click();
+ await expect(page.getByText(/Wood: 2 per run; 2\/10 per output unit; 4 for this branch/)).toBeVisible();
+ await page.getByRole('button',{name:'Pin craft goal',exact:true}).click();
+ await expect(page.getByRole('heading',{name:'Arrow · 0 / 11'})).toBeVisible();
+ await page.getByRole('button',{name:'Pin craft goal',exact:true}).click();
+ await page.getByRole('button',{name:/Increase existing goal/}).click();
+ await expect(page.getByRole('heading',{name:'Arrow · 0 / 22'})).toBeVisible();
+ await page.getByRole('button',{name:'Pin craft goal',exact:true}).click();
+ await page.getByRole('button',{name:'Create separate pin'}).click();
+ await expect(page.locator('.goal-list > li')).toHaveCount(2);
+ await page.getByLabel('Wood stock',{exact:true}).fill('3');
+ await page.getByRole('button',{name:'Save Wood stock',exact:true}).click();
+ await page.reload();
+ const disclosure=page.getByText('Contributing goals for Wood',{exact:true}).first();
+ await disclosure.click();
+ await expect(disclosure.locator('..')).toContainText('Goal 1 · Arrow: Need 6 · Reserved 3 · Planned 0 · Missing 3');
+ await expect(disclosure.locator('..')).toContainText('Goal 2 · Arrow: Need 2 · Reserved 0 · Planned 0 · Missing 2');
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});
