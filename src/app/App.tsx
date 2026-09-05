@@ -41,6 +41,9 @@ export default function App() {
   const data=view?.data;
   const latest=useRef<WorkspaceRevision|undefined>(undefined);
   const dirty=useRef(false);
+  const dirtyEditors=useRef(new Set<Element>());
+  const actionEditor=useRef<Element|null>(null);
+  const editorFor=(target:EventTarget)=>target instanceof Element?target.closest('form,[data-workspace-editor]'):null;
   const [latestRevision,setLatestRevision]=useState<number>();
   const [editorEpoch,setEditorEpoch]=useState(0);
   const [error,setError]=useState('');
@@ -66,11 +69,18 @@ export default function App() {
     // Capture the revision belonging to the rendered data, NEVER latest.current:
     // a live notification must not bless an older full-workspace replacement.
     const expectedRevision=view.revision;
+    const savedEditor=actionEditor.current;
     writing.current=true;setBusy(true);setError('');
     try {
       await workspaceStore.save(next,expectedRevision);
-      dirty.current=false;
-      receive(await readWorkspaceRevision(),true);
+      if(savedEditor)dirtyEditors.current.delete(savedEditor);
+      dirty.current=dirtyEditors.current.size>0;
+      // A successful save advances only to OUR exact payload/token. A peer
+      // can write before the follow-up read; do not bless it over other drafts.
+      setView({data:next,revision:expectedRevision+1});
+      const saved=await readWorkspaceRevision();
+      if(saved.revision===expectedRevision+1)setView(saved);
+      receive(saved,!dirty.current);
       return true;
     } catch(e) {
       dirty.current=true;
@@ -82,7 +92,7 @@ export default function App() {
   };
   const reviewLatest=()=>{
     if(!latest.current||writing.current)return;
-    dirty.current=false;setView(latest.current);setEditorEpoch(value=>value+1);setError('');
+    dirty.current=false;dirtyEditors.current.clear();setView(latest.current);setEditorEpoch(value=>value+1);setError('');
   };
   useEffect(() => {
     const navigate = () => setDestination(readDestination());
@@ -110,11 +120,11 @@ export default function App() {
         {!data&&!error&&<p role="status">Loading local workspace…</p>}
         {destination!=='Guild'&&<p role="status" aria-live="polite">{busy?'Saving…':data?'Saved in this browser':''}</p>}
         {guildOpened&&<div hidden={destination!=='Guild'} inert={destination!=='Guild'} style={destination!=='Guild'?{display:'none'}:undefined}><Suspense fallback={<p role="status">Loading guild interface…</p>}><GuildWorkspace workspace={data} onSummary={setGuildSummary} onSession={setGuildAuthenticated} logoutSignal={logoutSignal}/></Suspense></div>}
-        {data&&destination!=='Guild'&&<fieldset key={editorEpoch} disabled={busy} className="workspace" onInputCapture={()=>{dirty.current=true;}}>
+        {data&&destination!=='Guild'&&<fieldset key={editorEpoch} disabled={busy} className="workspace" onInputCapture={event=>{if(destination==='Breeding'||destination==='Bases')return;const editor=editorFor(event.target);if(editor){dirtyEditors.current.add(editor);dirty.current=true;}}} onClickCapture={event=>{actionEditor.current=editorFor(event.target);}} onSubmitCapture={event=>{actionEditor.current=editorFor(event.target);}}>
           {destination==='Today'&&<Today data={data} update={update} guildSummary={guildSummary} guildAuthenticated={guildAuthenticated} onGuildLogout={()=>{setGuildSummary(null);setGuildAuthenticated(false);setLogoutSignal(value=>value+1);}}/>}
-          {destination==='Craft'&&<div className="stack"><Craft data={data} update={update}/><Queue data={data} update={update}/><Inventory data={data} update={update}/></div>}
-          {destination==='Breeding'&&<PalWorkspace initialTargetSpeciesId={targetSpecies}/>}
-          {destination==='Bases'&&<BaseWorkspace onTargetSpecies={id=>{setTargetSpecies(id);window.location.hash='#/breeding';}}/>}
+          {destination==='Craft'&&<div className="stack"><div data-workspace-editor><Craft data={data} update={update}/></div><Queue data={data} update={update}/><Inventory data={data} update={update}/></div>}
+          {destination==='Breeding'&&<PalWorkspace initialTargetSpeciesId={targetSpecies} onWorkspaceWrite={async()=>receive(await readWorkspaceRevision())}/>}
+          {destination==='Bases'&&<BaseWorkspace onWorkspaceWrite={async()=>receive(await readWorkspaceRevision())} onTargetSpecies={id=>{setTargetSpecies(id);window.location.hash='#/breeding';}}/>}
           {destination==='Settings'&&<div className="stack"><Settings data={data} update={update}/><PalBackupPanel/></div>}
         </fieldset>}
         <footer className="page-footer"><span>Made for your next session, not another feed.</span><span>Unofficial fan companion · Not affiliated with Pocketpair</span><a href="/attribution.html">Data sources and licenses</a></footer>

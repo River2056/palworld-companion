@@ -1,23 +1,36 @@
-import {useEffect,useState} from 'react';
-import {liveQuery} from 'dexie';
+import {useCallback,useEffect,useState} from 'react';
+import Dexie, {liveQuery} from 'dexie';
 import {catalog as bundledCatalog,speciesName as referenceSpeciesName,routeMetrics,suitability as referenceSuitability,enumerateRoutes,parentGuidance,routeWarnings,analyzeBase,type PalReference,type Pal,type Base,type BreedingRoute,type SavedRoute} from './domain';
 import {palStore,type PalStore,type PalSnapshot} from './storage';
 import './pals.css';
 import {useCatalogRuntime, type CatalogRuntime} from '../catalog-runtime';
-export interface WorkspaceProps {store?:PalStore; onTargetSpecies?:(speciesId:string)=>void}
+export interface WorkspaceProps {store?:PalStore; onTargetSpecies?:(speciesId:string)=>void; onWorkspaceWrite?:()=>Promise<void>}
 export interface PalWorkspaceProps extends WorkspaceProps {initialTargetSpeciesId?:string}
-function useWorkspace(store:PalStore){
- const [data,setData]=useState<PalSnapshot|null>(null);const [error,setError]=useState('');const [busy,setBusy]=useState(false);const [retry,setRetry]=useState(0);
+// Generation inputs and their token must be one IDB snapshot, including after
+// our own writes. Independent runtime/roster subscriptions can mix revisions.
+async function readPalWorkspace(store:PalStore){
+ await Dexie.waitFor(store.db.ready());
+ return store.db.transaction('r',store.db.tables,async()=>{
+  const data=await store.snapshot();
+  const metadata=(await store.db.metadata.get('personal'))!;
+  const snapshots=new Map((await store.db.catalogSnapshots.toArray()).map(s=>[s.id,s]));
+  const runtime:CatalogRuntime={metadata,snapshots,selected:snapshots.get(metadata.selectedCatalog),resolve:id=>snapshots.get(id)};
+  return {data,runtime};
+ });
+}
+function useWorkspace(store:PalStore,onWorkspaceWrite?:()=>Promise<void>){
+ const [view,setView]=useState<{data:PalSnapshot;runtime:CatalogRuntime}|null>(null);const [error,setError]=useState('');const [busy,setBusy]=useState(false);const [retry,setRetry]=useState(0);
+ const receive=useCallback((value:NonNullable<typeof view>)=>setView(current=>current&&current.runtime.metadata.revision>value.runtime.metadata.revision?current:value),[]);
  useEffect(()=>{
   let active=true;
   const fail=(e:unknown)=>{if(active)setError(`Storage unavailable: ${e instanceof Error?e.message:String(e)}`);};
   // liveQuery can wait for a closed database to reopen; direct initial read surfaces that failure.
-  void store.snapshot().then(value=>{if(active)setData(value);}).catch(fail);
-  const sub=liveQuery(()=>store.snapshot()).subscribe({next:value=>{if(active)setData(value);},error:fail});
+  void readPalWorkspace(store).then(value=>{if(active)receive(value);}).catch(fail);
+  const sub=liveQuery(()=>readPalWorkspace(store)).subscribe({next:value=>{if(active)receive(value);},error:fail});
   return()=>{active=false;sub.unsubscribe();};
- },[store,retry]);
- async function run(action:()=>Promise<unknown>){setError('');setBusy(true);try{await action();setData(await store.snapshot());return true;}catch(e){setError(e instanceof Error?e.message:String(e));return false;}finally{setBusy(false);}}
- return {data,error,busy,run,retry:()=>{setError('');setRetry(n=>n+1);}};
+ },[store,retry,receive]);
+ async function run(action:()=>Promise<unknown>){setError('');setBusy(true);try{await action();const next=await readPalWorkspace(store);await onWorkspaceWrite?.();receive(next);return true;}catch(e){setError(e instanceof Error?e.message:String(e));return false;}finally{setBusy(false);}}
+ return {data:view?.data??null,runtime:view?.runtime,error,busy,run,retry:()=>{setError('');setRetry(n=>n+1);}};
 }
 function Notice({runtime}:{runtime:CatalogRuntime}){const snapshot=runtime.selected;return <aside className="pw-notice"><strong>Selected reference · compatibility unverified</strong><p>{snapshot?.pals.species.length??'Unknown'} species, {snapshot?.pals.breedingPairs.length??'Unknown'} explicit pairs. Unsupported pairs are not impossible. No perfect-passive guarantees or full-database optimality. Work levels are snapshot values, not current-game verified throughput.</p><small>{snapshot?.manifest.datasetId} · {runtime.metadata.selectedCatalog} · {snapshot?.manifest.verificationStatus}</small></aside>;}
 const newPal=(catalog:PalReference=bundledCatalog):Pal=>({id:crypto.randomUUID(),speciesId:catalog.species[0]?.id??'',nickname:'',gender:'unknown',passives:[],notes:'',location:'',archived:false,favorite:false});
@@ -30,9 +43,9 @@ function RouteView({route,pals,saved,onSave,onRemove,onOffspring,runtime}:{runti
  const warnings=routeWarnings(route,pals,catalog??null);const metrics=routeMetrics(route,pals);
  return <article className="pw-card"><h4>{speciesName(route.targetId)} · {route.steps.length} step(s)</h4><p>Ranking metrics: {metrics.missingParents} missing owned parents · {metrics.stepCount} steps · generation depth {metrics.generationDepth}.</p><p>{route.conditional?'Conditional: confirm compatible offspring/unknown parent gender.':warnings.length?'Saved route requires attention.':'Known first-step parent genders are compatible.'}</p>{warnings.map((warning,i)=><p role="status" key={i}>{warning}</p>)}<ol>{route.steps.map((step,i)=><li key={step.id}><p>{step.parents.map(parentLabel).join(' + ')} → <strong>{speciesName(step.childId)}</strong></p>{saved&&<label><input type="checkbox" disabled={!catalog} checked={saved.completed.includes(step.id)} onChange={e=>onSave({...saved,completed:e.target.checked?[...saved.completed,step.id]:saved.completed.filter(id=>id!==step.id)})}/>Step {i+1} complete (manual)</label>}{saved?.completed.includes(step.id)&&<button type="button" disabled={!catalog?.species.some(s=>s.id===step.childId)} onClick={()=>onOffspring?.(step.childId)}>Add offspring from step {i+1}</button>}</li>)}</ol><small>Catalog binding: {saved?(saved.catalogBinding?.state==='bound'?saved.catalogBinding.snapshotId:'legacy-unbound'):runtime.metadata.selectedCatalog}. Source version: {route.sourceVersion}. Parents are reusable; checking a step does not create a roster Pal.</small>{saved?<button type="button" onClick={onRemove}>Remove saved route</button>:<button type="button" onClick={()=>onSave({...route,completed:[]})}>Save route checklist</button>}</article>;
 }
-export function PalWorkspace({store=palStore,initialTargetSpeciesId}:PalWorkspaceProps){
- const {runtime,error:catalogError}=useCatalogRuntime(store.db);
- const state=useWorkspace(store);const [draft,setDraft]=useState<Pal>(()=>({...newPal(),speciesId:''}));const [target,setTarget]=useState(initialTargetSpeciesId??'Ronin');const [showArchived,setShowArchived]=useState(false);const [offspringSource,setOffspringSource]=useState<string|null>(null);
+export function PalWorkspace({store=palStore,initialTargetSpeciesId,onWorkspaceWrite}:PalWorkspaceProps){
+ const state=useWorkspace(store,onWorkspaceWrite);const runtime=state.runtime,catalogError=state.error;
+ const [draft,setDraft]=useState<Pal>(()=>({...newPal(),speciesId:''}));const [target,setTarget]=useState(initialTargetSpeciesId??'Ronin');const [showArchived,setShowArchived]=useState(false);const [offspringSource,setOffspringSource]=useState<string|null>(null);
  useEffect(()=>{if(initialTargetSpeciesId)setTarget(initialTargetSpeciesId);},[initialTargetSpeciesId]);
  const catalog=runtime?.selected?.pals;
  if(!runtime||!catalog)return <section><p role={state.error||catalogError?'alert':'status'}>{state.error|| (catalogError?`Storage unavailable: ${catalogError}`:'Selected catalog unavailable; new Pal plans and base analysis are blocked.')}</p>{runtime&&state.data?.routes.map(r=><RouteView runtime={runtime} key={r.id} route={r} saved={r} pals={state.data!.pals} onSave={r=>void state.run(()=>store.saveRoute(r))} onRemove={()=>void state.run(()=>store.removeRoute(r.id))}/>)}</section>;
@@ -47,9 +60,9 @@ export function PalWorkspace({store=palStore,initialTargetSpeciesId}:PalWorkspac
  <section><h3>Supported breeding routes</h3><label>Target species<select value={effectiveTarget} onChange={e=>setTarget(e.target.value)}>{catalog.species.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select></label><p>Bounded search: up to 4 breeding steps and 40 displayed alternatives; explicit pairs only. Ranked by missing owned parents, then step count, then generation depth (longest offspring chain), then stable route ID. New routes have zero missing parents; acquisition guidance below is separate, not a runnable route. A deterministic 200-node beam per ancestry search (including owned individuals) can omit alternatives; this is not global optimality. Future offspring gender is unknown and conditional.</p>{!routes.length&&<p>No supported route from your active individuals within these bounds.</p>}<ul>{parentGuidance(state.data.pals,effectiveTarget,catalog).map(text=><li key={text}>{text}</li>)}</ul>{routes.map(r=><RouteView runtime={runtime} key={r.id} route={r} pals={state.data!.pals} onSave={r=>void state.run(()=>store.saveRoute(state.data!.routes.find(saved=>saved.id===r.id)??r,generation))}/>)}</section><section aria-label="Saved breeding checklists"><h3>Saved route checklists</h3>{!state.data.routes.length&&<p>No saved routes.</p>}{state.data.routes.map(r=><RouteView runtime={runtime} key={r.id} route={r} saved={r} onOffspring={speciesId=>{setDraft({...newPal(catalog),speciesId});setOffspringSource(speciesId);requestAnimationFrame(()=>document.querySelector<HTMLSelectElement>('.pw-workspace form select')?.focus());}} pals={state.data!.pals} onSave={r=>void state.run(()=>store.saveRoute(r))} onRemove={()=>void state.run(()=>store.removeRoute(r.id))}/>)}</section></>}</section>;
 }
 const newBase=():Base=>({id:crypto.randomUUID(),name:'',capacity:15,workerIds:[],slots:[]});
-export function BaseWorkspace({store=palStore,onTargetSpecies}:WorkspaceProps){
+export function BaseWorkspace({store=palStore,onTargetSpecies,onWorkspaceWrite}:WorkspaceProps){
  const {runtime,error:catalogError}=useCatalogRuntime(store.db);
- const state=useWorkspace(store);const [draft,setDraft]=useState<Base>(newBase);
+ const state=useWorkspace(store,onWorkspaceWrite);const [draft,setDraft]=useState<Base>(newBase);
  const catalog=runtime?.selected?.pals;
  if(!runtime||!catalog)return <p role={state.error||catalogError?'alert':'status'}>{state.error||(catalogError?`Storage unavailable: ${catalogError}`:'Selected catalog unavailable; base coverage is unknown.')}</p>;
  const speciesName=(id:string)=>referenceSpeciesName(id,catalog);
