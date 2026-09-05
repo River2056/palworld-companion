@@ -1,0 +1,438 @@
+{
+  "schemaVersion": 1,
+  "catalogId": "palcalc-v1.20.2-small-reference",
+  "compatibility": {
+    "status": "unverified",
+    "inGameVerified": false,
+    "gamePatch": null,
+    "notice": "Historical community snapshot, not a claim of compatibility with the installed or latest game patch. Species and breeding share one pinned upstream commit. Source-checked only; not tested in game."
+  },
+  "scope": {
+    "breedingMode": "explicit-pairs-only",
+    "fullOptimizer": false,
+    "missingPairMeans": "unsupported-not-impossible",
+    "parentOrderMatters": false,
+    "genderPolicy": "Evaluate actual owned-parent genders at runtime; WILDCARD is upstream metadata, not permission to bypass compatible-gender checks. No fixed male/female assignments are encoded.",
+    "workSuitabilityPolicy": "Unmodified snapshot levels, including zeros; no assumptions about current maximum levels, condensation, passives, or individual bonuses."
+  },
+  "sources": [
+    {
+      "id": "palcalc-species",
+      "project": "Pal Calc",
+      "author": "Tyler Camp and contributors",
+      "url": "https://raw.githubusercontent.com/tylercamp/palcalc/d040d12ad362167e99937601b39714c4a145db94/PalCalc.Model/db.json",
+      "repository": "https://github.com/tylercamp/palcalc",
+      "revision": "d040d12ad362167e99937601b39714c4a145db94",
+      "releaseTag": "v1.20.2",
+      "databaseVersion": "v27",
+      "retrievedAt": "2026-09-05T19:35:11.910084+00:00",
+      "sha256": "e42052f24edad4fd4f4325456c76f2d9ddb5bff20d6b073c82c19782dc91a136",
+      "license": "MIT",
+      "licenseUrl": "https://raw.githubusercontent.com/tylercamp/palcalc/d040d12ad362167e99937601b39714c4a145db94/LICENSE.txt",
+      "copyright": "Copyright 2024, Tyler Camp"
+    },
+    {
+      "id": "palcalc-breeding",
+      "project": "Pal Calc",
+      "author": "Tyler Camp and contributors",
+      "url": "https://raw.githubusercontent.com/tylercamp/palcalc/d040d12ad362167e99937601b39714c4a145db94/PalCalc.Model/breeding.json",
+      "repository": "https://github.com/tylercamp/palcalc",
+      "revision": "d040d12ad362167e99937601b39714c4a145db94",
+      "releaseTag": "v1.20.2",
+      "databaseVersion": "v27",
+      "retrievedAt": "2026-09-05T19:35:11.910084+00:00",
+      "sha256": "e0f3a3eeca656ff506f4c1307397cad1bf156680d8c90ca6250ea790f11b38bb",
+      "license": "MIT",
+      "licenseUrl": "https://raw.githubusercontent.com/tylercamp/palcalc/d040d12ad362167e99937601b39714c4a145db94/LICENSE.txt",
+      "copyright": "Copyright 2024, Tyler Camp"
+    },
+    {
+      "id": "palcalc-license",
+      "project": "Pal Calc",
+      "author": "Tyler Camp and contributors",
+      "url": "https://raw.githubusercontent.com/tylercamp/palcalc/d040d12ad362167e99937601b39714c4a145db94/LICENSE.txt",
+      "repository": "https://github.com/tylercamp/palcalc",
+      "revision": "d040d12ad362167e99937601b39714c4a145db94",
+      "releaseTag": "v1.20.2",
+      "databaseVersion": "v27",
+      "retrievedAt": "2026-09-05T19:35:11.910084+00:00",
+      "sha256": "60768557719376acb654991ff138d1b6ce5e9bf872582566b3f82b22e51ad5a4",
+      "license": "MIT",
+      "licenseUrl": "https://raw.githubusercontent.com/tylercamp/palcalc/d040d12ad362167e99937601b39714c4a145db94/LICENSE.txt",
+      "copyright": "Copyright 2024, Tyler Camp"
+    }
+  ],
+  "species": [
+    {
+      "id": "SheepBall",
+      "name": "Lamball",
+      "paldexNumber": 1,
+      "isVariant": false,
+      "workSuitability": {
+        "Kindling": 0,
+        "Watering": 0,
+        "Planting": 0,
+        "GenerateElectricity": 0,
+        "Handiwork": 1,
+        "Gathering": 0,
+        "Lumbering": 0,
+        "Mining": 0,
+        "MedicineProduction": 0,
+        "Cooling": 0,
+        "Transporting": 1,
+        "Farming": 1
+      },
+      "sourceId": "palcalc-species",
+      "sourcePointer": "/Pals/35"
+    },
+    {
+      "id": "PinkCat",
+      "name": "Cattiva",
+      "paldexNumber": 2,
+      "isVariant": false,
+      "workSuitability": {
+        "Kindling": 0,
+        "Watering": 0,
+        "Planting": 0,
+        "GenerateElectricity": 0,
+        "Handiwork": 1,
+        "Gathering": 1,
+        "Lumbering": 0,
+        "Mining": 1,
+        "MedicineProduction": 0,
+        "Cooling": 0,
+        "Transporting": 1,
+        "Farming": 0
+      },
+      "sourceId": "palcalc-species",
+      "sourcePointer": "/Pals/56"
+    },
+    {
+      "id": "ChickenPal",
+      "name": "Chikipi",
+      "paldexNumber": 3,
+      "isVariant": false,
+      "workSuitability": {
+        "Kindling": 0,
+        "Watering": 0,
+        "Planting": 0,
+        "GenerateElectricity": 0,
+        "Handiwork": 0,
+        "Gathering": 1,
+        "Lumbering": 0,
+        "Mining": 0,
+        "MedicineProduction": 0,
+        "Cooling": 0,
+        "Transporting": 0,
+        "Farming": 1
+      },
+      "sourceId": "palcalc-species",
+      "sourcePointer": "/Pals/73"
+    },
+    {
+      "id": "FlyingManta",
+      "name": "Celaray",
+      "paldexNumber": 7,
+      "isVariant": false,
+      "workSuitability": {
+        "Kindling": 0,
+        "Watering": 1,
+        "Planting": 0,
+        "GenerateElectricity": 0,
+        "Handiwork": 0,
+        "Gathering": 0,
+        "Lumbering": 0,
+        "Mining": 0,
+        "MedicineProduction": 0,
+        "Cooling": 0,
+        "Transporting": 1,
+        "Farming": 0
+      },
+      "sourceId": "palcalc-species",
+      "sourcePointer": "/Pals/153"
+    },
+    {
+      "id": "Penguin",
+      "name": "Pengullet",
+      "paldexNumber": 17,
+      "isVariant": false,
+      "workSuitability": {
+        "Kindling": 0,
+        "Watering": 1,
+        "Planting": 0,
+        "GenerateElectricity": 0,
+        "Handiwork": 1,
+        "Gathering": 0,
+        "Lumbering": 0,
+        "Mining": 0,
+        "MedicineProduction": 0,
+        "Cooling": 1,
+        "Transporting": 1,
+        "Farming": 0
+      },
+      "sourceId": "palcalc-species",
+      "sourcePointer": "/Pals/30"
+    },
+    {
+      "id": "CaptainPenguin",
+      "name": "Penking",
+      "paldexNumber": 18,
+      "isVariant": false,
+      "workSuitability": {
+        "Kindling": 0,
+        "Watering": 2,
+        "Planting": 0,
+        "GenerateElectricity": 0,
+        "Handiwork": 2,
+        "Gathering": 0,
+        "Lumbering": 0,
+        "Mining": 3,
+        "MedicineProduction": 0,
+        "Cooling": 2,
+        "Transporting": 3,
+        "Farming": 0
+      },
+      "sourceId": "palcalc-species",
+      "sourcePointer": "/Pals/142"
+    },
+    {
+      "id": "Kitsunebi",
+      "name": "Foxparks",
+      "paldexNumber": 29,
+      "isVariant": false,
+      "workSuitability": {
+        "Kindling": 1,
+        "Watering": 0,
+        "Planting": 0,
+        "GenerateElectricity": 0,
+        "Handiwork": 0,
+        "Gathering": 0,
+        "Lumbering": 0,
+        "Mining": 0,
+        "MedicineProduction": 0,
+        "Cooling": 0,
+        "Transporting": 0,
+        "Farming": 0
+      },
+      "sourceId": "palcalc-species",
+      "sourcePointer": "/Pals/27"
+    },
+    {
+      "id": "BirdDragon",
+      "name": "Vanwyrm",
+      "paldexNumber": 64,
+      "isVariant": false,
+      "workSuitability": {
+        "Kindling": 2,
+        "Watering": 0,
+        "Planting": 0,
+        "GenerateElectricity": 0,
+        "Handiwork": 0,
+        "Gathering": 0,
+        "Lumbering": 0,
+        "Mining": 0,
+        "MedicineProduction": 0,
+        "Cooling": 0,
+        "Transporting": 3,
+        "Farming": 0
+      },
+      "sourceId": "palcalc-species",
+      "sourcePointer": "/Pals/71"
+    },
+    {
+      "id": "Ronin",
+      "name": "Bushi",
+      "paldexNumber": 85,
+      "isVariant": false,
+      "workSuitability": {
+        "Kindling": 2,
+        "Watering": 0,
+        "Planting": 0,
+        "GenerateElectricity": 0,
+        "Handiwork": 2,
+        "Gathering": 1,
+        "Lumbering": 3,
+        "Mining": 0,
+        "MedicineProduction": 0,
+        "Cooling": 0,
+        "Transporting": 2,
+        "Farming": 0
+      },
+      "sourceId": "palcalc-species",
+      "sourcePointer": "/Pals/151"
+    },
+    {
+      "id": "LazyDragon",
+      "name": "Relaxaurus",
+      "paldexNumber": 94,
+      "isVariant": false,
+      "workSuitability": {
+        "Kindling": 0,
+        "Watering": 3,
+        "Planting": 0,
+        "GenerateElectricity": 0,
+        "Handiwork": 0,
+        "Gathering": 0,
+        "Lumbering": 0,
+        "Mining": 0,
+        "MedicineProduction": 0,
+        "Cooling": 0,
+        "Transporting": 3,
+        "Farming": 0
+      },
+      "sourceId": "palcalc-species",
+      "sourcePointer": "/Pals/64"
+    },
+    {
+      "id": "RedArmorBird",
+      "name": "Ragnahawk",
+      "paldexNumber": 104,
+      "isVariant": false,
+      "workSuitability": {
+        "Kindling": 4,
+        "Watering": 0,
+        "Planting": 0,
+        "GenerateElectricity": 0,
+        "Handiwork": 0,
+        "Gathering": 0,
+        "Lumbering": 0,
+        "Mining": 0,
+        "MedicineProduction": 0,
+        "Cooling": 0,
+        "Transporting": 5,
+        "Farming": 0
+      },
+      "sourceId": "palcalc-species",
+      "sourcePointer": "/Pals/150"
+    },
+    {
+      "id": "Anubis",
+      "name": "Anubis",
+      "paldexNumber": 139,
+      "isVariant": false,
+      "workSuitability": {
+        "Kindling": 0,
+        "Watering": 0,
+        "Planting": 0,
+        "GenerateElectricity": 0,
+        "Handiwork": 6,
+        "Gathering": 0,
+        "Lumbering": 0,
+        "Mining": 6,
+        "MedicineProduction": 0,
+        "Cooling": 0,
+        "Transporting": 4,
+        "Farming": 0
+      },
+      "sourceId": "palcalc-species",
+      "sourcePointer": "/Pals/6"
+    }
+  ],
+  "breedingPairs": [
+    {
+      "id": "palcalc-pair-1228",
+      "parentIds": [
+        "Anubis",
+        "FlyingManta"
+      ],
+      "childId": "BirdDragon",
+      "sourceId": "palcalc-breeding",
+      "sourcePointer": "/Breeding/1228",
+      "sourceParentGenders": [
+        "WILDCARD",
+        "WILDCARD"
+      ]
+    },
+    {
+      "id": "palcalc-pair-1231",
+      "parentIds": [
+        "Anubis",
+        "PinkCat"
+      ],
+      "childId": "BirdDragon",
+      "sourceId": "palcalc-breeding",
+      "sourcePointer": "/Breeding/1231",
+      "sourceParentGenders": [
+        "WILDCARD",
+        "WILDCARD"
+      ]
+    },
+    {
+      "id": "palcalc-pair-5392",
+      "parentIds": [
+        "LazyDragon",
+        "SheepBall"
+      ],
+      "childId": "CaptainPenguin",
+      "sourceId": "palcalc-breeding",
+      "sourcePointer": "/Breeding/5392",
+      "sourceParentGenders": [
+        "WILDCARD",
+        "WILDCARD"
+      ]
+    },
+    {
+      "id": "palcalc-pair-5438",
+      "parentIds": [
+        "RedArmorBird",
+        "ChickenPal"
+      ],
+      "childId": "CaptainPenguin",
+      "sourceId": "palcalc-breeding",
+      "sourcePointer": "/Breeding/5438",
+      "sourceParentGenders": [
+        "WILDCARD",
+        "WILDCARD"
+      ]
+    },
+    {
+      "id": "palcalc-pair-31539",
+      "parentIds": [
+        "FlyingManta",
+        "PinkCat"
+      ],
+      "childId": "PinkCat",
+      "sourceId": "palcalc-breeding",
+      "sourcePointer": "/Breeding/31539",
+      "sourceParentGenders": [
+        "WILDCARD",
+        "WILDCARD"
+      ]
+    },
+    {
+      "id": "palcalc-pair-34242",
+      "parentIds": [
+        "RedArmorBird",
+        "CaptainPenguin"
+      ],
+      "childId": "Ronin",
+      "sourceId": "palcalc-breeding",
+      "sourcePointer": "/Breeding/34242",
+      "sourceParentGenders": [
+        "WILDCARD",
+        "WILDCARD"
+      ]
+    }
+  ],
+  "exampleChains": [
+    {
+      "id": "relaxaurus-lamball-to-bushi",
+      "startingSpeciesIds": [
+        "LazyDragon",
+        "SheepBall",
+        "RedArmorBird"
+      ],
+      "stepPairIds": [
+        "palcalc-pair-5392",
+        "palcalc-pair-34242"
+      ],
+      "targetSpeciesId": "Ronin",
+      "note": "Breed Relaxaurus with Lamball for Penking, then that Penking with Ragnahawk for Bushi. Requires compatible actual parent genders at each step; child gender is not guaranteed."
+    }
+  ],
+  "counts": {
+    "species": 12,
+    "breedingPairs": 6,
+    "exampleChains": 1
+  }
+}
