@@ -1,12 +1,14 @@
-import { useEffect, useState, useRef } from 'react';
+import { lazy, Suspense, useEffect, useState, useRef } from 'react';
 import { workspaceStore, type Workspace } from '../data/workspace';
 import { Craft } from '../features/Craft';
 import { Queue, Inventory } from '../features/Queue';
 import { Settings } from '../features/Settings';
 import { Today } from '../features/Today';
 import { PalWorkspace, BaseWorkspace } from '../features/pals';
+import { PalBackupPanel } from '../features/pals/BackupPanel';
 
-const destinations = ['Today', 'Craft', 'Breeding', 'Bases', 'Settings'] as const;
+const GuildWorkspace = lazy(() => import('../features/guild').then(module => ({ default: module.GuildWorkspace })));
+const destinations = ['Today', 'Craft', 'Breeding', 'Bases', 'Guild', 'Settings'] as const;
 type Destination = typeof destinations[number];
 function readDestination(): Destination {
   return destinations.find((name) => window.location.hash === `#/${name.toLowerCase()}`) ?? 'Today';
@@ -14,6 +16,7 @@ function readDestination(): Destination {
 
 export default function App() {
   const [destination, setDestination] = useState(readDestination);
+  const [targetSpecies, setTargetSpecies] = useState<string>();
   const [data,setData]=useState<Workspace>();
   const [error,setError]=useState('');
   const [busy,setBusy]=useState(false); const writing=useRef(false);
@@ -40,22 +43,22 @@ export default function App() {
         <nav aria-label="Main navigation">
           {destinations.map((name, index) => <a key={name} href={`#/${name.toLowerCase()}`} aria-current={destination === name ? 'page' : undefined}><span aria-hidden="true" className="nav-number">0{index + 1}</span>{name}<span className="nav-arrow" aria-hidden="true">↗</span></a>)}
         </nav>
-        <div className="upcoming"><p className="section-label">On the horizon</p><ul>{['Guild'].map((name) => <li key={name}><span>{name}</span><span className="upcoming-tag">Upcoming</span></li>)}</ul></div>
-        <div className="sidebar-note"><span className="status-dot"/> Local-first by design<p>Your browser. Your plans.<br/>No account required.</p></div>
+        <div className="sidebar-note"><span className="status-dot"/> Local-first by design<p>Personal plans stay in this browser.<br/>Guild connects only with your consent.</p></div>
       </aside>
       <main id="main-content" tabIndex={-1}>
-        <header className="page-header"><div><p className="eyebrow">A little planning. More exploring.</p><h1>{destination}</h1></div><span className="badge"><span className="status-dot"/> Personal workspace</span></header>
+        <header className="page-header"><div><p className="eyebrow">A little planning. More exploring.</p><h1>{destination}</h1></div><span className="badge"><span className="status-dot"/> {destination==='Guild'?'Optional shared workspace':'Personal workspace'}</span></header>
         <p className="catalog-status">Catalog: 10 reference recipes · 7 leaf materials · Game version: unverified</p>
         <p className="warning">Mixed-revision reference catalog, not current-game verified. Check recipe source links against your game. Station construction costs and alternate recipes excluded.</p>
         {error&&<p role="alert">{error}</p>}
         {!data&&!error&&<p role="status">Loading local workspace…</p>}
-        <p role="status" aria-live="polite">{busy?'Saving…':data?'Saved in this browser':''}</p>
-        {data&&<fieldset disabled={busy} className="workspace">
+        {destination!=='Guild'&&<p role="status" aria-live="polite">{busy?'Saving…':data?'Saved in this browser':''}</p>}
+        {destination==='Guild'&&<Suspense fallback={<p role="status">Loading guild interface…</p>}><GuildWorkspace/></Suspense>}
+        {data&&destination!=='Guild'&&<fieldset disabled={busy} className="workspace">
           {destination==='Today'&&<Today data={data} update={update}/>}
           {destination==='Craft'&&<div className="stack"><Craft data={data} update={update}/><Queue data={data} update={update}/><Inventory data={data} update={update}/></div>}
-          {destination==='Breeding'&&<PalWorkspace/>}
-          {destination==='Bases'&&<BaseWorkspace/>}
-          {destination==='Settings'&&<Settings data={data} update={update}/>}
+          {destination==='Breeding'&&<PalWorkspace initialTargetSpeciesId={targetSpecies}/>}
+          {destination==='Bases'&&<BaseWorkspace onTargetSpecies={id=>{setTargetSpecies(id);window.location.hash='#/breeding';}}/>}
+          {destination==='Settings'&&<div className="stack"><Settings data={data} update={update}/><PalBackupPanel/></div>}
         </fieldset>}
         <footer className="page-footer"><span>Made for your next session, not another feed.</span><span>Unofficial fan companion · Not affiliated with Pocketpair</span></footer>
       </main>
