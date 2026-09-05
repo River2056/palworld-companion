@@ -17,6 +17,9 @@ test('duplicate choice, branch expansion and allocated provenance survive reload
  await expect(page.locator('.goal-list > li')).toHaveCount(2);
  await page.getByLabel('Wood stock',{exact:true}).fill('3');
  await page.getByRole('button',{name:'Save Wood stock',exact:true}).click();
+ // A click does not await the IndexedDB save; reloading while Saving… can abort it.
+ await expect(page.getByRole('status').filter({hasText:'Saved in this browser'})).toBeVisible();
+ await expect(page.getByLabel('Wood stock',{exact:true}).locator('xpath=ancestor::form')).not.toContainText('Unknown — no recorded manual save');
  await page.reload();
  const disclosure=page.getByText('Contributing goals for Wood',{exact:true}).first();
  await disclosure.click();

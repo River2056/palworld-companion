@@ -1,12 +1,17 @@
-import {test,expect,type Page} from '@playwright/test';
+import {test as base,expect,type Page} from '@playwright/test';
+const test=base.extend<{url:string}>({
+ url:async({baseURL},use)=>{
+  // Honor the active suite's server; retain the standalone runtime fallback.
+  await use(process.env.CATALOG_RUNTIME_URL??baseURL??'http://127.0.0.1:4287');
+ },
+});
 async function acceptMigration(page:Page){
  await Promise.all([page.waitForEvent('load'),page.getByRole('button',{name:'Accept catalog migration',exact:true}).click()]);
  await expect(page.getByRole('heading',{name:'Workspace and catalog references'})).toBeVisible();
  await expect(page.getByRole('region',{name:'Catalog migration preview',exact:true})).toHaveCount(0);
 }
 
-const url=process.env.CATALOG_RUNTIME_URL??'http://127.0.0.1:4287';
-test('snapshot pin, legacy cancel/adopt and rollback retain later quantities',async({page})=>{
+test('snapshot pin, legacy cancel/adopt and rollback retain later quantities',async({page,url})=>{
  await page.goto(url+'/#/craft');
  await page.getByRole('button',{name:'Select Pal Sphere',exact:true}).click();
  await page.getByRole('button',{name:'Pin craft goal',exact:true}).click();
@@ -32,7 +37,7 @@ test('snapshot pin, legacy cancel/adopt and rollback retain later quantities',as
  const reverted=await page.evaluate(async()=>{const {workspaceStore}=await import(/* @vite-ignore */ String('/src/data/workspace.ts'));return (await workspaceStore.load()).goals[0];});
  expect(reverted.quantity).toBe(7);expect(reverted.catalogBinding.state).toBe('legacy-unbound');
 });
-test('validated synthetic alternate persists and partial unknown never consumes stock twice',async({page})=>{
+test('validated synthetic alternate persists and partial unknown never consumes stock twice',async({page,url})=>{
  await page.goto(url+'/#/craft');await page.getByRole('button',{name:'Select Pal Sphere',exact:true}).waitFor();
  const payload=await page.evaluate(async()=>{
   const {createBundledCatalogSnapshot,createCatalogSnapshot}=await import(/* @vite-ignore */ String('/src/domain/catalog-snapshot.ts'));
@@ -56,7 +61,7 @@ test('validated synthetic alternate persists and partial unknown never consumes 
  expect(planning.complete).toBe(false);expect(planning.goals).toHaveLength(2);expect(planning.direct.find((r:{item:string})=>r.item==='wood').reserved).toBe(4);expect(planning.raw.find((r:{item:string})=>r.item==='ore').reserved).toBe(1);
 });
 
-test('synthetic candidate numeric deltas share queue stock; cancel is inert and missing bytes never fall back',async({page})=>{
+test('synthetic candidate numeric deltas share queue stock; cancel is inert and missing bytes never fall back',async({page,url})=>{
  await page.goto(url+'/#/craft');
  await page.getByRole('button',{name:'Select Arrow',exact:true}).click();
  await page.getByLabel('Desired finished units').fill('11');
@@ -96,7 +101,7 @@ test('synthetic candidate numeric deltas share queue stock; cancel is inert and 
 });
 
 
-test('deferred comparison read rejects another tab revision; stale consent cannot accept',async({page,context})=>{
+test('deferred comparison read rejects another tab revision; stale consent cannot accept',async({page,context,url})=>{
  await page.goto(url+'/#/settings');
  await expect(page.getByRole('heading',{name:'Workspace and catalog references'})).toBeVisible();
  await page.evaluate(async()=>{
@@ -149,7 +154,7 @@ test('deferred comparison read rejects another tab revision; stale consent canno
 });
 
 
-test('fresh imported candidate keeps route/base comparisons exact through cancel adopt rollback and missing references',async({page})=>{
+test('fresh imported candidate keeps route/base comparisons exact through cancel adopt rollback and missing references',async({page,url})=>{
  await page.goto(url+'/#/settings');
  await expect(page.getByRole('heading',{name:'Workspace and catalog references'})).toBeVisible();
  const fixture=await page.evaluate(async()=>{
@@ -195,7 +200,7 @@ test('fresh imported candidate keeps route/base comparisons exact through cancel
  const missing=await read();expect(missing.routes).toEqual(fixture.routes);expect(missing.bases).toEqual(fixture.bases);expect(missing.history).toBe(2);
 });
 
-test('superseded candidate file reads cannot restore an old candidate or consent',async({page})=>{
+test('superseded candidate file reads cannot restore an old candidate or consent',async({page,url})=>{
  await page.goto(url+'/#/settings');
  await expect(page.getByRole('heading',{name:'Workspace and catalog references'})).toBeVisible();
  const fixture=await page.evaluate(async()=>{
