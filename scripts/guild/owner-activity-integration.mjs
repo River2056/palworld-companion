@@ -2,6 +2,8 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {randomUUID, createHash} from 'node:crypto';
+import {execFileSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 // Deliberately require a named isolated stack; never silently target user data.
 const prefix=process.env.GUILD_LOCAL_PREFIX;
 assert.ok(prefix && prefix!=='pw-guild-local' && /^[a-z][a-z0-9-]{0,62}$/.test(prefix),'Set an isolated GUILD_LOCAL_PREFIX');
@@ -113,3 +115,5 @@ assert.deepEqual(good(await rpc('guild_digest',{p_guild:guild},member)),finalHis
 good(await rpc('mark_seen',{p_guild:guild,p_through_id:finalHistory.at(-1).id},member));
 assert.deepEqual(good(await rpc('guild_digest',{p_guild:guild},member)),[]);
 console.log('PASS exact membership and 3 active claim-release snapshots; 2 closed assignments preserved; authorization/RLS, rollback/no-op, immutable history, secret exclusion, actor/time and cursor digest acknowledgement');
+// Keep the deterministic lock regression in the ordinary owner-activity gate.
+execFileSync(process.execPath,[fileURLToPath(new URL('./owner-deadlock-integration.mjs',import.meta.url))],{env:{...process.env,GUILD_DB_CONTAINER:`${prefix}-db`},stdio:'inherit',timeout:120000});

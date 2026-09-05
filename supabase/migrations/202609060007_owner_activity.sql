@@ -6,7 +6,9 @@ language plpgsql security definer set search_path=public,pg_temp as $$
 declare old_guild guilds; new_guild guilds;
 begin
  if not is_guild_owner(p_guild) then raise exception 'Owner required' using errcode='42501'; end if;
- select * into old_guild from guilds where id=p_guild for update;
+ -- Name is not a key: exclude concurrent renames without blocking activity FK
+ -- KEY SHARE after its counter lock (UPDATE would invert guild/counter order).
+ select * into old_guild from guilds where id=p_guild for no key update;
  update guilds set name=trim(p_name) where id=p_guild returning * into new_guild;
  insert into guild_activity(guild_id,actor,kind,details) values(p_guild,auth.uid(),'guild_renamed',
  jsonb_build_object('actor',auth.uid(),'before',to_jsonb(old_guild),'after',to_jsonb(new_guild),'summary',format('Guild renamed: %s → %s',old_guild.name,new_guild.name)));
