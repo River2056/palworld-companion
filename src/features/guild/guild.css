@@ -1,0 +1,15 @@
+.guild-workspace { max-width: 64rem; margin: 1rem auto; padding: 1rem; color: inherit; overflow-wrap: anywhere; }
+.guild-workspace fieldset { min-width: 0; margin: 1rem 0; padding: 1rem; border: 1px solid #718096; border-radius: .5rem; }
+.guild-workspace label { display: grid; gap: .35rem; margin: .6rem 0; }
+.guild-workspace input:not([type=checkbox]), .guild-workspace select { box-sizing: border-box; width: 100%; min-height: 2.75rem; padding: .5rem; color: #182432; background: #fff; border: 1px solid #718096; border-radius: .25rem; }
+.guild-workspace .guild-check { display: flex; align-items: start; gap: .6rem; }
+.guild-workspace .guild-check input { flex: 0 0 auto; margin-top: .3rem; }
+.guild-workspace button { min-height: 2.75rem; margin: .25rem .5rem .25rem 0; padding: .5rem .8rem; cursor: pointer; }
+.guild-workspace button:disabled { opacity: .55; cursor: not-allowed; }
+.guild-workspace :focus-visible { outline: 3px solid #00a5b5; outline-offset: 3px; }
+.guild-workspace [role=alert] { border-left: 4px solid #db704d; padding: 1rem; margin: 1rem 0; }
+.guild-workspace [role=status] { border-left: 4px solid #42a5a0; padding: .6rem; }
+.guild-workspace .guild-toolbar { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+.guild-workspace .guild-tasks { list-style: none; padding: 0; }
+.guild-workspace .guild-tasks > li { padding: 1rem; margin: .75rem 0; border: 1px solid #718096; border-radius: .5rem; }
+.guild-workspace summary { cursor: pointer; padding: .5rem 0; }
