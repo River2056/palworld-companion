@@ -1,0 +1,68 @@
+/* global URL, fetch, console, AbortSignal */
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {randomUUID} from 'node:crypto';
+const config=JSON.parse(await readFile(new URL('./.local/config.json',import.meta.url)));
+const users=[];
+async function req(path,body,user=users[0],method='POST') {
+ const r=await fetch(`${config.restUrl}/${path}`,{method,signal:AbortSignal.timeout(10000),headers:{apikey:config.anonKey,Authorization:`Bearer ${user?.access_token??config.anonKey}`,'Content-Type':'application/json'},...(body===undefined?{}:{body:JSON.stringify(body)})});
+ const text=await r.text();return {status:r.status,ok:r.ok,data:text?JSON.parse(text):null};
+}
+const rpc=(name,body,user)=>req(`rpc/${name}`,body,user);
+const good=r=>{assert.ok(r.ok,JSON.stringify(r));return r.data;};
+const conflict=r=>{assert.equal(r.status,409,JSON.stringify(r));assert.equal(r.data.code,'PT409');};
+for(let i=0;i<3;i++) {
+ const r=await fetch(`${config.authUrl}/signup`,{method:'POST',headers:{apikey:config.anonKey,'Content-Type':'application/json'},body:JSON.stringify({email:`details-${randomUUID()}@example.test`,password:randomUUID()+'Aa1!'})});
+ const u=await r.json();assert.ok(r.ok&&u.access_token,'real signup');users.push(u);
+}
+const guild=good(await rpc('create_guild',{p_name:'Details integration'}));
+const token=good(await rpc('create_invite',{p_guild:guild,p_hours:1}));
+good(await rpc('redeem_invite',{p_token:token,p_accept:true},users[1]));
+const base={p_guild:guild,p_action:'create',p_task:null,p_revision:null,p_title:'Gather wood',p_status:'open',p_source:'item:wood',p_checksum:'v1',p_key:randomUUID(),p_type:'gathering',p_description:'For the north base',p_requested:10,p_delivered:0,p_source_requirement:`plan:${randomUUID()}:wood`};
+const [first,retry]=await Promise.all([rpc('mutate_task',base),rpc('mutate_task',base)]);
+let t=good(first);assert.deepEqual(t,good(retry));assert.equal(t.requested_quantity,10);assert.equal(t.description,base.p_description);assert.equal(t.task_type,'gathering');
+const duplicateRace=await Promise.all([0,1].map(()=>rpc('mutate_task',{...base,p_key:randomUUID()})));
+for(const duplicate of duplicateRace) assert.equal(good(duplicate).id,t.id);
+const dup=good(await rpc('mutate_task',{...base,p_key:randomUUID()}));assert.equal(dup.id,t.id);
+conflict(await rpc('mutate_task',{...base,p_checksum:'v2',p_key:randomUUID()}));
+assert.equal((await rpc('mutate_task',{...base,p_requested:12})).ok,false,'new fields participate in idempotency payload');
+const update=(fields,user)=>rpc('mutate_task',{...base,p_action:'update',p_task:t.id,p_revision:t.revision,p_key:randomUUID(),...fields},user);
+assert.equal((await update({p_delivered:11})).ok,false);
+for(const quantity of [-1,'9007199254740992','9223372036854775808',1.5]) assert.equal((await update({p_requested:quantity})).ok,false,`invalid quantity ${quantity}`);
+conflict(await update({p_checksum:'v2',p_requested:12}));
+assert.equal((await update({p_delivered:1},users[1])).status,403,'unassigned member denied');
+t=good(await rpc('mutate_task',{...base,p_action:'claim',p_task:t.id,p_revision:t.revision,p_key:randomUUID()},users[1]));
+t=good(await update({p_checksum:'v2',p_reconfirm:true,p_requested:12,p_delivered:4,p_status:'blocked'},users[1]));
+assert.equal(t.snapshot_checksum,'v2');assert.equal(t.delivered_quantity,4);assert.equal(t.status,'blocked');
+const historicalTitle=t.title;
+t=good(await update({p_checksum:'v2',p_title:'Renamed after delivery',p_requested:12,p_delivered:12,p_status:'done'}));
+const replacement=good(await rpc('mutate_task',{...base,p_checksum:'v3',p_key:randomUUID()}));assert.notEqual(replacement.id,t.id);
+conflict(await update({p_checksum:'v2',p_status:'open',p_requested:12,p_delivered:12}));
+let stock={p_guild:guild,p_item:'wood',p_quantity:20,p_revision:0,p_key:randomUUID()};
+const s=good(await rpc('set_shared_stock',stock,users[1]));assert.equal(s.quantity,20);assert.equal(s.updated_by,users[1].user.id);
+assert.deepEqual(good(await rpc('set_shared_stock',stock,users[1])),s);
+assert.equal((await rpc('set_shared_stock',{...stock,p_quantity:21},users[1])).ok,false);
+const race=await Promise.all([21,22].map(p_quantity=>rpc('set_shared_stock',{...stock,p_quantity,p_revision:1,p_key:randomUUID()})));
+assert.equal(race.filter(r=>r.ok).length,1);conflict(race.find(r=>!r.ok));
+assert.equal((await rpc('set_shared_stock',{...stock,p_key:randomUUID()},users[2])).status,403);
+assert.equal((await rpc('set_shared_stock',{...stock,p_key:randomUUID()},null)).ok,false);
+for(const quantity of [-1,'9007199254740992',null]) assert.equal((await rpc('set_shared_stock',{...stock,p_quantity:quantity,p_revision:2,p_key:randomUUID()})).ok,false);
+const max=good(await rpc('set_shared_stock',{...stock,p_quantity:'9007199254740991',p_revision:2,p_key:randomUUID()}));assert.equal(max.quantity,Number.MAX_SAFE_INTEGER);
+for(const method of ['POST','PATCH','DELETE']) assert.equal((await req('guild_shared_stock',method==='DELETE'?undefined:{quantity:5},users[1],method)).ok,false);
+assert.deepEqual(good(await req(`guild_shared_stock?guild_id=eq.${guild}`,undefined,users[2],'GET')),[]);
+const rows=good(await req(`guild_tasks?guild_id=eq.${guild}`,undefined,users[1],'GET'));assert.equal(rows.length,2);assert.equal(rows.find(r=>r.id===t.id).status,'done');
+const events=good(await rpc('guild_digest',{p_guild:guild},users[1]));
+const delivery=events.find(e=>e.task_id===t.id&&e.details.after?.delivered_quantity===4);
+assert.equal(delivery.details.before.delivered_quantity,0);assert.equal(delivery.details.after.title,historicalTitle);assert.equal(delivery.details.actor,users[1].user.id);assert.match(delivery.details.summary,/Gather wood.*blocked.*4\/12/);
+assert.equal(events.filter(e=>e.task_id===t.id&&e.kind==='create').length,1,'duplicate request has no duplicate activity');
+assert.ok(events.some(e=>e.kind==='stock_set'&&e.details.before?.quantity===20));
+assert.equal((await req(`guild_activity?id=eq.${delivery.id}`,{details:{}},users[0],'PATCH')).ok,false);
+assert.equal(good(await req(`guild_shared_stock?guild_id=eq.${guild}`,undefined,users[1],'GET'))[0].quantity,Number.MAX_SAFE_INTEGER);
+const freshRequirement=`plan:${randomUUID()}:stone`;
+const creates=await Promise.all([0,1].map(()=>rpc('mutate_task',{...base,p_source_requirement:freshRequirement,p_key:randomUUID()})));
+assert.equal(good(creates[0]).id,good(creates[1]).id,'different-key concurrent first create deduplicates');
+const bounded=good(await rpc('mutate_task',{...base,p_source:null,p_source_requirement:null,p_requested:'9007199254740991',p_delivered:'9007199254740991',p_status:'cancelled',p_key:randomUUID()}));
+assert.equal(bounded.requested_quantity,Number.MAX_SAFE_INTEGER);
+conflict(await rpc('mutate_task',{...base,p_action:'claim',p_task:bounded.id,p_revision:bounded.revision,p_key:randomUUID()}));
+assert.equal(good(await req(`guild_shared_stock?guild_id=eq.${guild}`,undefined,users[1],'GET'))[0].quantity,Number.MAX_SAFE_INTEGER,'task delivery never changes shared stock');
+console.log('PASS real task details/quantity bounds/delivery constraints; source dedup/checksum reconfirmation/history; owner-assignee permission; stock exact-set CAS race/idempotency/RLS/bounds; immutable readable activity snapshots');
