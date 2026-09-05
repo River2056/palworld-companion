@@ -14,6 +14,49 @@ export function binding(value:unknown, claimedVersion?:string):CatalogBinding {
  if(b.state==='legacy-unbound'&& (b.claimedVersion===undefined||typeof b.claimedVersion==='string'))return {state:'legacy-unbound',...(b.claimedVersion===undefined?{}:{claimedVersion:b.claimedVersion})};
  throw new Error('Invalid catalog binding');
 }
+/** Upgrade and rename, rather than merely mark, the old stores. Dexie v1 retries
+ * VersionError with an unversioned open, so a version bump alone is not a fence.
+ * Renaming preserves every raw row/index as a recovery backup while making the
+ * original client's named-store transactions fail. The versionchange is atomic.
+ */
+async function fenceLegacy(name:string,target:string):Promise<void>{
+ await new Promise<void>((resolve,reject)=>{
+  let abandoned=false;
+  // Dexie repairs missing stores by opening native version + 1. Reserve
+  // the maximum WebIDL-safe version for this archival database, so that
+  // repair attempt is rejected by IndexedDB rather than recreating stores.
+  const request=indexedDB.open(name,Number.MAX_SAFE_INTEGER);
+  // Chromium can report blocked while a just-closed Dexie connection drains.
+  // Allow that close to finish, but fail boundedly for a noncooperating tab.
+  let blockedTimer:ReturnType<typeof setTimeout>|undefined;
+  request.onblocked=()=>{blockedTimer=setTimeout(()=>{abandoned=true;reject(new Error('Legacy database is open in another tab; close it and retry'));},100);};
+  request.onupgradeneeded=()=>{
+   clearTimeout(blockedTimer);
+   const tx=request.transaction!;
+   if(abandoned){tx.abort();return;}
+   try{
+    for(const store of ['pals','bases','routes']){
+     const backup=`legacy${store[0].toUpperCase()}${store.slice(1)}`;
+     if(request.result.objectStoreNames.contains(store)){
+      if(request.result.objectStoreNames.contains(backup))throw new Error('Conflicting legacy recovery stores');
+      tx.objectStore(store).name=backup;
+     }
+     if(!request.result.objectStoreNames.contains(backup))throw new Error(`Missing legacy store: ${store}`);
+    }
+    const marker=request.result.objectStoreNames.contains('consolidation')?tx.objectStore('consolidation'):request.result.createObjectStore('consolidation',{keyPath:'id'});
+    marker.put({id:'read-only',target,backupStores:['legacyPals','legacyBases','legacyRoutes']});
+   }catch(error){tx.abort();reject(error);}
+  };
+  request.onerror=()=>{clearTimeout(blockedTimer);reject(request.error);};
+  request.onsuccess=()=>{
+   clearTimeout(blockedTimer);
+   const names=request.result.objectStoreNames;
+   const fenced=['pals','bases','routes'].every(store=>!names.contains(store)&&names.contains(`legacy${store[0].toUpperCase()}${store.slice(1)}`));
+   request.result.close();
+   if(!abandoned){if(fenced)resolve();else reject(new Error('Legacy database archive fence is incomplete'));}
+  };
+ });
+}
 /** All production facades share this schema/name; named test DBs remain isolated. */
 export class PersonalDatabase extends Dexie {
  workspaces!:Table<{id:string;data:Workspace},string>;
@@ -31,17 +74,17 @@ export class PersonalDatabase extends Dexie {
   await this.readiness;
  }
  private async initialize(){
+  // Also repair databases consolidated by the former marker-only implementation.
+  const hasLegacy=this.legacyName&&await Dexie.exists(this.legacyName);
+  if(hasLegacy)await fenceLegacy(this.legacyName as string,this.name);
   if(await this.metadata.get('personal'))return;
   const snapshot=await createBundledCatalogSnapshot();
   let copied:{pals:Pal[];bases:Base[];routes:BoundRoute[]}|undefined;
-  if(this.legacyName&&await Dexie.exists(this.legacyName)){
-   const legacy=new Dexie(this.legacyName);
-   legacy.version(1).stores({pals:'id,speciesId',bases:'id',routes:'id,targetId'});
-   legacy.version(2).stores({pals:'id,speciesId',bases:'id',routes:'id,targetId',consolidation:'id'}).upgrade(tx=>tx.table('consolidation').put({id:'read-only',target:this.name}).then(()=>{}));
-   legacy.on('blocked',()=>legacy.close());
+  if(hasLegacy){
+   const legacy=new Dexie(this.legacyName as string);
    try{
     await legacy.open();
-    const raw=await legacy.transaction('r',legacy.tables,async()=>({pals:await legacy.table('pals').toArray(),bases:await legacy.table('bases').toArray(),routes:await legacy.table('routes').toArray()}));
+    const raw=await legacy.transaction('r',legacy.tables,async()=>({pals:await legacy.table('legacyPals').toArray(),bases:await legacy.table('legacyBases').toArray(),routes:await legacy.table('legacyRoutes').toArray()}));
     const {createPalBackup}=await import('../features/pals/backup');
     copied=createPalBackup(raw).snapshot;
    }finally{legacy.close();}

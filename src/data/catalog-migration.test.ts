@@ -100,5 +100,5 @@ test('legacy copy is non-destructive, transactional and retryable; marker preven
  const db=new PersonalDatabase('copy-'+crypto.randomUUID(),name);dbs.push(db);const retained=new Dexie(name);dbs.push(retained);
  vi.spyOn(db.metadata,'add').mockRejectedValueOnce(new Error('copy failure'));await expect(db.ready()).rejects.toThrow('copy failure');expect(await db.pals.count()).toBe(0);
  await db.ready();expect((await db.pals.get('unknown'))?.favorite).toBe(true);await db.write(async()=>{await db.pals.update('unknown',{nickname:'later'});});
- db.close();const reopened=new PersonalDatabase(db.name,name);await reopened.ready();expect((await reopened.pals.get('unknown'))?.nickname).toBe('later');reopened.close();await retained.open();expect((await retained.table('pals').get('unknown')).nickname).toBe('legacy');
+ db.close();const reopened=new PersonalDatabase(db.name,name);await reopened.ready();expect((await reopened.pals.get('unknown'))?.nickname).toBe('later');reopened.close();await retained.open();expect((await retained.table('legacyPals').get('unknown')).nickname).toBe('legacy');
 });
