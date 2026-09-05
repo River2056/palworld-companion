@@ -1,6 +1,9 @@
 import {expect, test, type Page} from '@playwright/test';
 import {readFileSync} from 'node:fs';
 import type {PalBackup} from '../../src/features/pals/backup';
+import type {Workspace} from '../../src/data/workspace';
+import type {SnapshotBackup} from '../../src/data/personal-db';
+type CraftBackup = SnapshotBackup & {schemaVersion:2;scope:'craft';workspace:Workspace};
 
 type WriteAudit = {db:string; store:string; operation:string};
 type AuditedWindow = Window & {backupWrites:WriteAudit[]};
@@ -86,10 +89,16 @@ test('scoped backup roundtrip retains nonempty roster/checklist/base and unknown
  await page.getByRole('spinbutton',{name:'Wood stock',exact:true}).fill('37');
  await page.getByRole('button',{name:'Save Wood stock',exact:true}).click();
  await page.getByRole('link',{name:'Settings',exact:true}).click();
- const craftBefore=await exported<{goals:unknown[];stock:Record<string,number>}>(page,'Export JSON backup');
- expect(craftBefore.goals).toHaveLength(1);
- expect(Object.values(craftBefore.stock)).toContain(37);
+ const craftBefore=await exported<CraftBackup>(page,'Export JSON backup');
+ expect(craftBefore.schemaVersion).toBe(2);
+ expect(craftBefore.scope).toBe('craft');
+ expect(craftBefore.workspace.goals).toHaveLength(1);
+ expect(Object.values(craftBefore.workspace.stock)).toContain(37);
+ expect(Object.values(craftBefore.workspace.stockUpdatedAt??{})).toHaveLength(1);
+ expect(craftBefore.snapshots).toHaveLength(1);
  const original=await exported<PalBackup>(page,'Export Pal backup');
+ expect(original.schemaVersion).toBe(2);
+ expect(original.catalog).toEqual({snapshots:craftBefore.snapshots,metadata:craftBefore.metadata});
  expect(original.snapshot.pals).toHaveLength(3);
  expect(original.snapshot.routes).toHaveLength(1);
  expect(original.snapshot.routes[0].steps).toHaveLength(2);
@@ -100,7 +109,7 @@ test('scoped backup roundtrip retains nonempty roster/checklist/base and unknown
  // Explicitly synthetic recovery IDs are not game-catalog facts. All normal records above came from UI.
  const recovery=structuredClone(original);
  recovery.snapshot.pals.push({id:'synthetic-legacy-pal',speciesId:'synthetic-unknown-species',nickname:'Synthetic unresolved favorite',gender:'unknown',passives:['Synthetic manual note'],notes:'Recovery-only fixture, not game data',location:'',archived:false,favorite:true});
- recovery.snapshot.routes.push({id:'synthetic-legacy-route',targetId:'synthetic-unknown-child',sourceVersion:'synthetic-legacy-source',conditional:true,completed:['synthetic-step'],steps:[{id:'synthetic-step',pairId:'synthetic-unknown-pair',childId:'synthetic-unknown-child',parents:['owned:synthetic-legacy-pal','owned:synthetic-missing-parent'],conditional:true}]});
+ recovery.snapshot.routes.push({id:'synthetic-legacy-route',targetId:'synthetic-unknown-child',sourceVersion:'synthetic-legacy-source',catalogBinding:{state:'legacy-unbound',claimedVersion:'synthetic-legacy-source'},conditional:true,completed:['synthetic-step'],steps:[{id:'synthetic-step',pairId:'synthetic-unknown-pair',childId:'synthetic-unknown-child',parents:['owned:synthetic-legacy-pal','owned:synthetic-missing-parent'],conditional:true}]});
  const beforePreview=await writes(page);
  await preview(page,recovery);
  await expect(page.getByText('Unresolved species ID retained: synthetic-unknown-species',{exact:true})).toBeVisible();
@@ -120,18 +129,21 @@ test('scoped backup roundtrip retains nonempty roster/checklist/base and unknown
  await replace(page,recovery);
  const recovered=await exported<PalBackup>(page,'Export Pal backup');
  expect(recovered.snapshot).toEqual(recovery.snapshot);
+ expect(recovered.catalog).toEqual(original.catalog);
  // Restore an actually downloaded backup after a destructive replacement in this fresh test context.
  await replace(page,{...original,snapshot:{pals:[],bases:[],routes:[]}});
  expect((await exported<PalBackup>(page,'Export Pal backup')).snapshot).toEqual({pals:[],bases:[],routes:[]});
  await replace(page,recovered);
  expect((await exported<PalBackup>(page,'Export Pal backup')).snapshot).toEqual(recovered.snapshot);
- expect(await exported(page,'Export JSON backup')).toEqual(craftBefore);
+ expect(await exported<CraftBackup>(page,'Export JSON backup')).toEqual(craftBefore);
  const restoreWrites=(await writes(page)).slice(beforePreview.length);
  expect(restoreWrites.length).toBeGreaterThan(0);
- expect(restoreWrites.every(w=>w.db==='palworld-companion-pals'&&['pals','bases','routes'].includes(w.store))).toBe(true);
+ // Schema v2 shares one database; a successful replace also advances its revision.
+ expect(restoreWrites.every(w=>w.db==='palworld-companion'&&['pals','bases','routes','metadata'].includes(w.store))).toBe(true);
+ expect(restoreWrites.filter(w=>w.store==='metadata')).toHaveLength(3);
  await page.reload();
  expect((await exported<PalBackup>(page,'Export Pal backup')).snapshot).toEqual(recovered.snapshot);
- expect(await exported(page,'Export JSON backup')).toEqual(craftBefore);
+ expect(await exported<CraftBackup>(page,'Export JSON backup')).toEqual(craftBefore);
  await page.getByRole('link',{name:'Breeding',exact:true}).click();
  await expect(page.getByRole('button',{name:'Favorite Backup hawk',exact:true})).toHaveAttribute('aria-pressed','true');
  await expect(page.getByRole('button',{name:'Favorite Synthetic unresolved favorite',exact:true})).toHaveAttribute('aria-pressed','true');
@@ -145,13 +157,5 @@ test('scoped backup roundtrip retains nonempty roster/checklist/base and unknown
  expect(errors).toEqual([]);
 });
 
-test('known spec gap: saved route favorite survives scoped import/export',async({page})=>{
- await page.goto('/#/settings');
- const empty=await exported<PalBackup>(page,'Export Pal backup');
- const fixture={...empty,snapshot:{pals:[],bases:[],routes:[{id:'synthetic-favorite-route',targetId:'synthetic-child',sourceVersion:'synthetic-source',conditional:true,favorite:true,completed:[],steps:[{id:'synthetic-step',pairId:'synthetic-pair',childId:'synthetic-child',parents:['owned:synthetic-a','owned:synthetic-b'],conditional:true}]}]}};
- await replace(page,fixture);
- const restored=await exported<PalBackup & {snapshot:{routes:{favorite?:boolean}[]}}>(page,'Export Pal backup');
- // 0b68f65 has roster favorites but no route favorite model/UI/backup field. Remove test.fail when closed.
- test.fail(true,'0b68f65 drops saved-route favorite; this is an explicit unresolved acceptance gap, not a passing roundtrip.');
- expect(restored.snapshot.routes[0].favorite).toBe(true);
-});
+// Saved-route favorites are outside the accepted model; roster favorites remain
+// covered above. See docs/reviews/e2e-contract-reconciliation.md.
