@@ -1,0 +1,2 @@
+import {defineConfig,devices} from '@playwright/test';
+export default defineConfig({testDir:'./tests/e2e',testMatch:'app-craft-freshness.spec.ts',workers:1,use:{baseURL:'http://127.0.0.1:4291',trace:'retain-on-failure'},projects:[{name:'desktop-chromium',use:{...devices['Desktop Chrome']}},{name:'mobile-chromium',use:{...devices['Pixel 7']}}],webServer:{command:'npm run dev -- --port 4291 --strictPort',url:'http://127.0.0.1:4291',reuseExistingServer:false}});
