@@ -21,6 +21,16 @@ Fixed against `f4060b6`. The real UI now creates male Ragnahawk **Hawk** and fem
 - `npx vitest run src/app/App.freshness.test.tsx src/features/pals`: **33 passed**.
 - `npm run typecheck`, focused ESLint with `--max-warnings 0`, and `git diff --check`: clean.
 
+## Independent timeout-recovery verification
+
+The previous worker actually committed `a0efeca` before its timeout was reported. Re-review confirmed that `update` captures the submitting editor before the asynchronous save, removes only that editor on success, and keeps Pal/Base forms outside craft dirty capture. No generation or storage CAS guard was weakened.
+
+The review found one remaining lifecycle bug: DOM editor keys survived unmount. A discarded Craft draft could freeze App revisions after leaving Craft. Added post-commit cleanup for disconnected editor/action elements; connected independent drafts remain tracked. New navigation regression failed against `a0efeca` (expected peer Stone=9, rendered stale Stone=0) and passes with cleanup.
+
+Final browser source was copied into `/var/folders/y1/m4mhk8x543n1ytmrgf9pv41m0000gn/T/pal-app-final-oletiue4`, including research JSON, and served on dedicated strict port **4397**, with no changes during each run. The five focused suites listed above now have **22 passing desktop/mobile cases**, including Hawk/Hen → Bushi exact generation/parents, Wood=17 / dirty Stone=23 / peer Stone=9 with zero-write stale rejection, unmounted-editor cleanup, and real two-tab catalog-change rejection. Direct `tsc --noEmit`, Vitest (**33 passed**), ESLint `--max-warnings 0`, and `git diff --check` all pass. No new hook or Workspaces changes were necessary in this follow-up.
+
+The final run also included the separately owned backup suite: **22 passed, 2 failed** overall. Both extra failures remain the frozen backup fixture's obsolete `craftBefore.goals` assertion described below, not an App save failure. This does not claim the unrelated backup suite is green. Red cleanup trace is retained under the frozen directory's `cleanup-red-evidence`; final run failure traces are under `app-final-results`.
+
 ## Adjacent reconciliation issue (not hidden)
 
 The separately owned `pals-backup-roundtrip.spec.ts` was also exercised. Its formerly blocked Pal route and subsequent Arrow pin now succeed, but both viewport cases stop at line 90: the test reads `craftBefore.goals` from the obsolete bare-workspace export shape. Current export is a schema-v2 envelope (`workspace.goals`). This test-contract mismatch was not edited in this scope. No reload workaround was introduced.

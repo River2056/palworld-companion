@@ -44,6 +44,25 @@ test('same-tab roster creation saves Bushi with the exact fresh generation witho
  await expect(page.getByRole('alert')).toHaveCount(0);
 });
 
+test('unmounted craft drafts do not freeze subsequent Pal or inventory saves',async({page,context})=>{
+ await page.goto('/#/craft');
+ await page.getByRole('spinbutton',{name:'Stone stock',exact:true}).fill('23');
+ await page.getByRole('link',{name:'Breeding',exact:true}).click();
+ await page.getByLabel('Nickname',{exact:true}).fill('Unsaved Pal draft');
+ const second=await context.newPage();await second.goto('/#/craft');
+ await second.getByRole('spinbutton',{name:'Stone stock',exact:true}).fill('9');
+ await second.getByRole('button',{name:'Save Stone stock',exact:true}).click();
+ await expect(second.getByRole('button',{name:'Save Stone stock',exact:true})).toBeEnabled();
+ await page.getByRole('link',{name:'Craft',exact:true}).click();
+ await expect(page.getByRole('spinbutton',{name:'Stone stock',exact:true})).toHaveValue('9');
+ await expect(page.getByRole('button',{name:'Review latest workspace (discard draft)'})).toHaveCount(0);
+ await page.getByRole('spinbutton',{name:'Wood stock',exact:true}).fill('17');
+ await page.getByRole('button',{name:'Save Wood stock',exact:true}).click();
+ await expect(second.getByRole('spinbutton',{name:'Wood stock',exact:true})).toHaveValue('17');
+ await expect(page.getByRole('alert')).toHaveCount(0);
+ await second.close();
+});
+
 test('saving one craft editor preserves another draft through a second-tab write and CAS rejection',async({page,context})=>{
  await page.goto('/#/craft');
  const second=await context.newPage();await second.goto('/#/craft');

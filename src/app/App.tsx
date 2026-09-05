@@ -90,6 +90,19 @@ export default function App() {
       return false;
     } finally{writing.current=false;setBusy(false);}
   };
+  // Route changes and removed/completed goals unmount their editors. Those
+  // discarded DOM drafts must not keep unrelated later screens revision-frozen.
+  useEffect(()=>{
+    let removed=false;
+    for(const editor of dirtyEditors.current){
+      if(!editor.isConnected){dirtyEditors.current.delete(editor);removed=true;}
+    }
+    if(actionEditor.current&&!actionEditor.current.isConnected)actionEditor.current=null;
+    if(removed){
+      dirty.current=dirtyEditors.current.size>0;
+      if(!dirty.current&&!writing.current&&latest.current)setView(latest.current);
+    }
+  },[destination,view,editorEpoch,busy]);
   const reviewLatest=()=>{
     if(!latest.current||writing.current)return;
     dirty.current=false;dirtyEditors.current.clear();setView(latest.current);setEditorEpoch(value=>value+1);setError('');
