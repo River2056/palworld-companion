@@ -2,7 +2,7 @@ import 'fake-indexeddb/auto';
 import {expect,it} from 'vitest';
 import {PalDatabase, PalStore} from './storage';
 import {analyzeBase,validateBase,type Base,type Pal} from './domain';
-const p:Pal={id:'p',speciesId:'Penguin',nickname:'Pip',gender:'unknown',notes:'',location:'box',passives:[],archived:false};
+const p:Pal={id:'p',speciesId:'Penguin',nickname:'Pip',gender:'unknown',notes:'',location:'box',passives:[],archived:false,favorite:false};
 const base:Base={id:'b',name:'Home',capacity:2,workerIds:['p'],slots:[{id:'w',work:'Watering',minimum:1,priority:2},{id:'c',work:'Cooling',minimum:1,priority:1}]};
 it('detects shared-worker shortages instead of counting suitability twice',()=>{
  const result=analyzeBase(base,[p]); expect(result.shortage).toBe(1); expect(result.assignments).toEqual([{palId:'p',slotId:'w'}]);

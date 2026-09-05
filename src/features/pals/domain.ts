@@ -1,22 +1,43 @@
 import reference from '../../../docs/research/pal-reference.json';
 export const catalog = reference;
 export type Gender = 'male' | 'female' | 'unknown';
-export interface Pal { id:string; speciesId:string; nickname:string; gender:Gender; passives:string[]; notes:string; location:string; archived:boolean }
+export interface Pal { id:string; speciesId:string; nickname:string; gender:Gender; passives:string[]; notes:string; location:string; archived:boolean; favorite?:boolean }
 export interface RouteStep { id:string; pairId:string; childId:string; parents:[string,string]; conditional:boolean }
 export interface BreedingRoute { id:string; targetId:string; steps:RouteStep[]; conditional:boolean; sourceVersion:string }
 export interface SavedRoute extends BreedingRoute { completed:string[] }
 export const speciesName = (id:string) => catalog.species.find(s=>s.id===id)?.name ?? id;
 export function validatePal(p:Pal) {
+ if(p.favorite!==undefined && typeof p.favorite!=='boolean') throw new Error('Invalid favorite flag.');
  if (!p.id || !catalog.species.some(s=>s.id===p.speciesId) || !['male','female','unknown'].includes(p.gender)) throw new Error('Choose a supported species and valid gender.');
  if (p.nickname.length>100 || p.notes.length>4000 || p.location.length>200 || p.passives.join(',').length>1000) throw new Error('Pal text is too long (nickname 100, notes 4000, location 200, passives 1000).');
 }
+export function routeMetrics(route:BreedingRoute,roster:Pal[]) {
+ const depths=new Map<string,number>();
+ const missing=new Set<string>();
+ for(const step of route.steps){
+  for(const ref of step.parents)if(ref.startsWith('owned:')&&!roster.some(p=>`owned:${p.id}`===ref&&!p.archived))missing.add(ref);
+  depths.set(step.id,1+Math.max(...step.parents.map(ref=>ref.startsWith('step:')?depths.get(ref.slice(5))??0:0)));
+ }
+ return {missingParents:missing.size,stepCount:route.steps.length,generationDepth:Math.max(0,...depths.values())};
+}
+const stableCompare=(a:string,b:string)=>a<b?-1:a>b?1:0;
 /** Explicit pair search only. Species ancestry prevents cycles; nodes retain individual parent identity. */
 export function enumerateRoutes(roster:Pal[], targetId:string, maxSteps=4, limit=40):BreedingRoute[] {
  type Node={ref:string; gender:Gender; steps:RouteStep[]};
  if(!Number.isInteger(maxSteps)||maxSteps<1||!Number.isInteger(limit)||limit<1||limit>1000) throw new Error('Search bounds require positive whole numbers; maximum 1000 alternatives.');
  const bound=Math.min(6,maxSteps);
+ // Fixed intermediate beam is independent of the requested display limit.
+ const beam=200;
+ const asRoute=(n:Node):BreedingRoute=>({id:n.ref,targetId,steps:n.steps,conditional:n.steps.some(s=>s.conditional),sourceVersion:catalog.catalogId});
+ const compare=(a:Node,b:Node)=>{
+  const x=routeMetrics(asRoute(a),roster),y=routeMetrics(asRoute(b),roster);
+  return x.missingParents-y.missingParents||x.stepCount-y.stepCount||x.generationDepth-y.generationDepth||stableCompare(a.ref,b.ref);
+ };
+ const memo=new Map<string,Node[]>();
  function seek(species:string, ancestors:Set<string>):Node[] {
-  const owned:Node[]=roster.filter(p=>!p.archived && p.speciesId===species).map(p=>({ref:`owned:${p.id}`,gender:p.gender,steps:[]}));
+  const key=JSON.stringify([species,[...ancestors].sort()]);
+  const cached=memo.get(key);if(cached)return cached;
+  const owned:Node[]=roster.filter(p=>!p.archived && p.speciesId===species).map(p=>({ref:`owned:${p.id}`,gender:p.gender,steps:[]})).sort(compare).slice(0,beam);
   if(ancestors.has(species)||ancestors.size>=bound) return owned;
   const next=new Set([...ancestors,species]); const nodes=[...owned];
   for(const pair of catalog.breedingPairs.filter(p=>p.childId===species)) {
@@ -27,12 +48,12 @@ export function enumerateRoutes(roster:Pal[], targetId:string, maxSteps=4, limit
     const id=`${pair.id}(${a.ref},${b.ref})`;
     const step:RouteStep={id,pairId:pair.id,childId:species,parents:[a.ref,b.ref],conditional:a.gender==='unknown'||b.gender==='unknown'};
     nodes.push({ref:`step:${id}`,gender:'unknown',steps:[...prior,step]});
-    if(nodes.length>=limit) return nodes;
+    if(nodes.length>beam*2)nodes.sort(compare).splice(beam);
    }
   }
-  return nodes;
+  const ranked=nodes.sort(compare).slice(0,beam);memo.set(key,ranked);return ranked;
  }
- return seek(targetId,new Set()).filter(n=>n.steps.length).slice(0,limit).map(n=>({id:n.ref,targetId,steps:n.steps,conditional:n.steps.some(s=>s.conditional),sourceVersion:catalog.catalogId}));
+ return seek(targetId,new Set()).filter(n=>n.steps.length).sort(compare).slice(0,limit).map(asRoute);
 }
 /** Validate graph shape without deleting legacy catalog IDs or missing owned-parent links. */
 export function validateRoute(route:SavedRoute) {

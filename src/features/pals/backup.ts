@@ -29,7 +29,7 @@ export function validatePalBackup(input:unknown):PalBackupPreview {
   const speciesId=text(p.speciesId,'speciesId');species(speciesId);
   const passives=list(p.passives,'passives',100).map(v=>text(v,'passive',1000,false));
   if(passives.join(',').length>1000)fail('passives length');
-  return {id:text(p.id,'Pal id'),speciesId,nickname:text(p.nickname,'nickname',100,false),gender:gender as Pal['gender'],passives,notes:text(p.notes,'notes',4000,false),location:text(p.location,'location',200,false),archived:bool(p.archived,'archived')};
+  return {id:text(p.id,'Pal id'),speciesId,nickname:text(p.nickname,'nickname',100,false),gender:gender as Pal['gender'],passives,notes:text(p.notes,'notes',4000,false),location:text(p.location,'location',200,false),archived:bool(p.archived,'archived'),favorite:p.favorite===undefined?false:bool(p.favorite,'favorite')};
  });
  unique(pals.map(p=>p.id),'Pal IDs');
  const bases:Base[]=list(snapshot.bases,'bases',1000).map(value=>{

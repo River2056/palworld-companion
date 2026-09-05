@@ -8,7 +8,7 @@ import {PalBackupPanel} from './BackupPanel';
 const stores:PalStore[]=[];
 function store(){const s=new PalStore(new PalDatabase('backup-'+crypto.randomUUID()));stores.push(s);return s;}
 afterEach(async()=>{cleanup();vi.restoreAllMocks();await Promise.all(stores.splice(0).map(s=>s.db.delete()));});
-const snapshot:PalSnapshot={pals:[{id:'p',speciesId:'unreleased-species',nickname:'Unknown',gender:'unknown',passives:['future-passive'],notes:'keep me',location:'box',archived:false}],bases:[{id:'b',name:'Home',capacity:1,workerIds:['p'],slots:[]}],routes:[{id:'r',targetId:'future-target',sourceVersion:'legacy',conditional:true,completed:['s'],steps:[{id:'s',pairId:'future-pair',childId:'future-target',parents:['owned:p','owned:removed'],conditional:true}]}]};
+const snapshot:PalSnapshot={pals:[{id:'p',speciesId:'unreleased-species',nickname:'Unknown',gender:'unknown',passives:['future-passive'],notes:'keep me',location:'box',archived:false,favorite:false}],bases:[{id:'b',name:'Home',capacity:1,workerIds:['p'],slots:[]}],routes:[{id:'r',targetId:'future-target',sourceVersion:'legacy',conditional:true,completed:['s'],steps:[{id:'s',pairId:'future-pair',childId:'future-target',parents:['owned:p','owned:removed'],conditional:true}]}]};
 it('exports and imports all three stores with unknown IDs and missing original parents preserved',async()=>{
  const s=store();const backup=createPalBackup(snapshot,new Date('2026-01-01T00:00:00.000Z'));
  const preview=parsePalBackup(JSON.stringify(backup));
