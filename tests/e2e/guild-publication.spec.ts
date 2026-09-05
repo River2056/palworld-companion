@@ -14,7 +14,15 @@ for (const width of [1280, 390]) test(`publication, stale source, conflicts and 
   page.on('response',async r=>{if(r.url()===`${authUrl}/signup` || r.url().includes('/token?')) session=await r.json();});
   const suffix=randomUUID(),email=`publication-${suffix}@example.test`,password=`Test-${suffix}!`;
   await page.goto(`${process.env.GUILD_BROWSER_URL || baseURL!}/#/guild`);
-  await page.evaluate(async()=>{const {workspaceStore}=await import(String('/src/data/workspace.ts')); const {catalog}=await import(String('/src/domain/catalog.ts'));await workspaceStore.save({version:1,goals:[{id:'acceptance-goal',item:catalog.recipes[0].id,quantity:2,completed:0,notes:'NEVER SHARE THIS'}],stock:{},recent:[]});});
+  await page.evaluate(async()=>{
+    const {workspaceStore}=await import(String('/src/data/workspace.ts'));
+    await workspaceStore.ready();
+    const metadata=await workspaceStore.personalMetadata();
+    const snapshot=await workspaceStore.resolveSnapshot(metadata.selectedCatalog);
+    const recipe=snapshot.craft.recipes.find((entry:{id:string})=>entry.id==='cloth');
+    if(!recipe) throw Error('The selected catalog must provide the Cloth fixture recipe');
+    await workspaceStore.save({version:1,goals:[{id:'acceptance-goal',item:recipe.outputItemId,recipeId:recipe.id,catalogBinding:{state:'bound',snapshotId:snapshot.id},quantity:2,completed:0,notes:'NEVER SHARE THIS'}],stock:{},recent:[]},metadata.revision);
+  });
   await page.reload();
   await expect(page.getByRole('link',{name:'Data sources and licenses'})).toHaveAttribute('href','/attribution.html');
   expect(requests.every(url => new URL(url).origin === new URL(process.env.GUILD_BROWSER_URL || baseURL!).origin)).toBe(true);
@@ -30,7 +38,11 @@ for (const width of [1280, 390]) test(`publication, stale source, conflicts and 
   const guild=await page.getByLabel('Selected guild').inputValue();
   async function rpc(name:string,input:Record<string,unknown>) {const r=await fetch(`${restUrl}/rpc/${name}`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${session.access_token}`},body:JSON.stringify(input)});if(!r.ok) throw Error(await r.text());return r.json();}
   async function tasks():Promise<Task[]> {const r=await fetch(`${restUrl}/guild_tasks?guild_id=eq.${guild}`,{headers:{Authorization:`Bearer ${session.access_token}`}});if(!r.ok) throw Error(await r.text());return r.json();}
-  const picker=page.getByLabel('Personal source to copy');const choice=await picker.locator('option').nth(width === 1280 ? 1 : 2).getAttribute('value');await picker.selectOption(choice!);
+  const picker=page.getByLabel('Personal source to copy');
+  await expect(picker).toBeVisible(); // Wait for the local live-query/hash generation.
+  const choice=await picker.locator('option').nth(width === 1280 ? 1 : 2).getAttribute('value');await picker.selectOption(choice!);
+  expect(choice).toMatch(/^personal:v2:/);
+  await expect(page.getByRole('heading',{name:'Exact shared field preview'}).locator('..')).toContainText('semantic-v2:sha256:');
   await expect(page.getByRole('button',{name:'Publish selected source'})).toBeDisabled();expect(mutations).toHaveLength(0);
   await page.getByLabel(/I consent to share exactly/).check();await page.getByRole('button',{name:'Publish selected source'}).click();
   await expect(page.locator('.guild-tasks > li')).toHaveCount(1);expect(JSON.stringify(mutations)).not.toContain('NEVER SHARE THIS');
@@ -39,6 +51,7 @@ for (const width of [1280, 390]) test(`publication, stale source, conflicts and 
   const stored = await page.evaluate(() => JSON.stringify([localStorage,sessionStorage]));
   expect(stored).not.toContain(password);expect(stored).not.toContain(session!.access_token);
   const task=(await tasks())[0];expect(task.source_requirement_id).toBe(choice);expect(task.requested_quantity).toBeGreaterThan(0);
+  expect(task.snapshot_checksum).toMatch(/^semantic-v2:sha256:[a-f0-9]{64}$/);
   await page.getByLabel(/I consent to share exactly/).check();await page.getByRole('button',{name:'Publish selected source'}).click();await expect(page.getByRole('button',{name:'Publish selected source'})).toBeDisabled();
   await expect(page.getByText('Contacting guild server…')).toHaveCount(0);expect(await tasks()).toHaveLength(1);
   const edit=page.getByRole('group',{name:'Edit shared task',exact:true});await edit.getByLabel('Edit title').fill('My proposed title');
@@ -59,17 +72,19 @@ for (const width of [1280, 390]) test(`publication, stale source, conflicts and 
   expect(claimed.assignee).toBe(session!.user.id);
   // A fresh local snapshot changes only the prompt, never the claimed task.
   await page.evaluate(async()=>{const {workspaceStore}=await import(String('/src/data/workspace.ts'));const data=await workspaceStore.load();data.goals[0].quantity=4;await workspaceStore.save(data);});
-  await page.reload();await login();await page.getByLabel('Selected guild').selectOption(guild);await expect(page.getByText(/Local source quantity changed:/)).toBeVisible();expect((await tasks())[0].requested_quantity).toBe(task.requested_quantity);
-  // A changed snapshot cannot silently deduplicate into the old active task.
+  await page.reload();await login();await page.getByLabel('Selected guild').selectOption(guild);await expect(page.getByText(/Local source semantics changed/)).toBeVisible();expect((await tasks())[0].requested_quantity).toBe(task.requested_quantity);
+  // Semantic v2 preserves the loaded requirement locally, without another create
+  // RPC or silently applying its changed source. Actual revision races above
+  // still require server reload, explicit review and a fresh idempotency key.
+  const beforeDuplicate = mutations.length;
   await page.getByLabel('Personal source to copy').selectOption(choice!);
   await page.getByLabel(/I consent to share exactly/).check();
   await page.getByRole('button',{name:'Publish selected source'}).click();
-  await page.getByRole('button',{name:'Reload conflicting tasks'}).click();
-  await expect(comparison.getByRole('button',{name:'Confirm and reapply'})).toBeDisabled();
-  await comparison.getByRole('button',{name:'Review existing active task'}).click();
+  await expect(page.getByText('Existing source task preserved. Review its source preview explicitly.',{exact:true})).toBeVisible();
   await expect(page.locator(`#guild-task-${task.id}`)).toBeFocused();
-  expect(await tasks()).toHaveLength(1);
-  await expect(page.getByRole('button',{name:'Apply local source snapshot'})).toBeDisabled();await page.getByLabel(/I coordinated with the assignee/).check();await page.getByRole('button',{name:'Apply local source snapshot'}).click();await expect(page.getByText(/Local source quantity changed:/)).toHaveCount(0);
+  expect(mutations).toHaveLength(beforeDuplicate);
+  expect(await tasks()).toEqual([claimed]);
+  await expect(page.getByRole('button',{name:'Apply local source snapshot'})).toBeDisabled();await page.getByLabel(/I coordinated with the assignee/).check();await page.getByRole('button',{name:'Apply local source snapshot'}).click();await expect(page.getByText(/Local source semantics changed/)).toHaveCount(0);
   const updated=(await tasks())[0];expect(updated.requested_quantity).toBeGreaterThan(task.requested_quantity!);expect(updated.title).toBe('My proposed title');expect(updated.assignee).toBe(claimed.assignee);expect(updated.status).toBe(claimed.status);expect(updated.delivered_quantity).toBe(task.delivered_quantity);
   await page.evaluate(async()=>{const {workspaceStore}=await import(String('/src/data/workspace.ts'));const data=await workspaceStore.load();data.goals=[];await workspaceStore.save(data);});
   await page.reload();await login();await page.getByLabel('Selected guild').selectOption(guild);await expect(page.getByText(/Local source removed, completed/)).toBeVisible();expect(await tasks()).toHaveLength(1);

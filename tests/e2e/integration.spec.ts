@@ -27,7 +27,7 @@ test('personal modules persist real Pal edits and base assignment without networ
  await expect(page.getByText('1 / 15 workers · 0 / 0 simultaneous slots covered',{exact:true})).toBeVisible();
  await page.getByRole('link',{name:'Today',exact:true}).click();
  await expect(page.getByText('1 active Pals · 0 archived · 0 saved breeding routes',{exact:true})).toBeVisible();
- await expect(page.getByText('1 bases · 1 assigned workers · 0 uncovered work slots',{exact:true})).toBeVisible();
+ await expect(page.getByText('No work slots configured; coverage has not been assessed.',{exact:true})).toBeVisible();
  await page.getByRole('link',{name:'Find a recipe',exact:true}).click();
  await page.getByLabel('Search recipes').fill('Arrow');
  await page.getByRole('button',{name:'Select Arrow',exact:true}).click();
@@ -45,7 +45,7 @@ test('personal modules persist real Pal edits and base assignment without networ
  await page.getByRole('button',{name:'Replace Pal data',exact:true}).click();
  await expect(page.getByText('Pal, base and route backup restored.',{exact:true})).toBeVisible();
  await page.getByRole('link',{name:'Today',exact:true}).click();
- await expect(page.getByText('1 bases · 1 assigned workers · 0 uncovered work slots',{exact:true})).toBeVisible();
+ await expect(page.getByText('No work slots configured; coverage has not been assessed.',{exact:true})).toBeVisible();
  await page.getByRole('link',{name:'Guild',exact:true}).click();
  await expect(page.getByRole('button',{name:'Sign in',exact:true})).toBeDisabled();
  await page.reload();
@@ -57,7 +57,7 @@ test('personal modules persist real Pal edits and base assignment without networ
 test('real guild UI signs up, signs in, creates and reads back shared task',async({page})=>{
  test.skip(process.env.GUILD_E2E!=='1','Opt in with GUILD_E2E=1 and running local guild services.');
  // Configuration is read only in Node. Only public endpoint URLs enter the page.
- const {authUrl,restUrl}=JSON.parse(readFileSync(new URL('../../scripts/guild/.local/config.json',import.meta.url),'utf8')) as {authUrl:string;restUrl:string};
+ const {authUrl,restUrl}=JSON.parse(readFileSync(process.env.GUILD_E2E_CONFIG || process.env.GUILD_BROWSER_CONFIG || new URL('../../scripts/guild/.local/config.json',import.meta.url),'utf8')) as {authUrl:string;restUrl:string};
  const suffix=randomUUID(); const email=`browser-${suffix}@example.test`; const password=`Browser-${randomUUID()}!`;
  const guildName=`Browser guild ${suffix}`; const taskTitle=`Browser task ${suffix}`;
  await page.goto('/#/guild');
@@ -94,7 +94,12 @@ test('real guild UI signs up, signs in, creates and reads back shared task',asyn
  await expect(page.locator('.guild-tasks strong')).toHaveText(taskTitle);
  await expect(page.locator('.guild-tasks')).toContainText('done · revision');
  await page.getByRole('link',{name:'Today',exact:true}).click();
+ await expect(page.getByRole('region',{name:'Optional guild planning'})).toContainText('Session retained in memory');
  await page.getByRole('link',{name:'Guild',exact:true}).click();
+ await expect(page.getByText(`Signed in as ${email}`,{exact:true})).toBeVisible();
+ await expect(page.locator('.guild-tasks strong')).toHaveText(taskTitle);
+ // Navigation retains the memory-only session; a document reload must not.
+ await page.reload();
  await expect(page.getByRole('button',{name:'Sign in',exact:true})).toBeDisabled();
  await expect(page.locator('.guild-tasks')).toHaveCount(0);
 });
