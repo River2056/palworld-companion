@@ -2,8 +2,9 @@ import { useState } from 'react';
 import type { PublicationSource } from './publication';
 export function PublicationPicker({ guild, sources, disabled, onPublish }: { guild: string; sources: PublicationSource[]; disabled: boolean; onPublish: (source: PublicationSource) => void }) {
  const [selected,setSelected]=useState('');
- const source=sources.find(s=>s.requirement===selected);
- return <fieldset disabled={disabled}><legend>Copy one personal crafting source</legend><p>Direct ingredient shortages use your existing queue allocation. Pins copy the full goal quantity, not completed progress. No personal notes, inventory, or other goals are shared.</p><label>Personal source to copy<select value={selected} onChange={e=>setSelected(e.target.value)}><option value="">Choose one pin or shortage</option>{sources.map(s=><option key={s.requirement} value={s.requirement}>{s.title} · {s.quantity} · {s.requirement}</option>)}</select></label>{!sources.length && <p>No active publishable sources. Pin a recipe in Craft first.</p>}{source && <Consent key={`${guild}:${JSON.stringify(source)}`} source={source} onPublish={onPublish}/>}</fieldset>;
+ const verified=sources.filter(s=>s.checksum.startsWith('semantic-v2:'));
+ const source=verified.find(s=>s.requirement===selected);
+ return <fieldset disabled={disabled}><legend>Copy one personal crafting source</legend><p>Direct ingredient shortages use your existing queue allocation. Pins copy the full goal quantity, not completed progress. No personal notes, inventory, or other goals are shared.</p><label>Personal source to copy<select value={selected} onChange={e=>setSelected(e.target.value)}><option value="">Choose one pin or shortage</option>{verified.map(s=><option key={s.requirement} value={s.requirement}>{s.title} · {s.quantity} · {s.requirement}</option>)}</select></label>{!verified.length && <p>No verified publishable sources. Resolve the exact catalog binding or explicitly adopt an unbound goal in Settings first.</p>}{source && <Consent key={`${guild}:${JSON.stringify(source)}`} source={source} onPublish={onPublish}/>}</fieldset>;
 }
 function Consent({source,onPublish}:{source:PublicationSource;onPublish:(source:PublicationSource)=>void}) {
  const [consent,setConsent]=useState(false);

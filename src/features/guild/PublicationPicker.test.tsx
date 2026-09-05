@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { PublicationPicker } from './PublicationPicker';
 afterEach(cleanup);
 it('requires selection and exact-preview consent again after source or guild changes', () => {
- const onPublish=vi.fn(); const source={kind:'pin' as const,title:'Craft test',source:'item:test',requirement:'goal:one',checksum:'quantity-v1:2',quantity:2};
+ const onPublish=vi.fn(); const source={kind:'pin' as const,title:'Craft test',source:'item:test',requirement:'goal:one',checksum:'semantic-v2:sha256:test',quantity:2};
  const view=render(<PublicationPicker guild="one" sources={[source]} disabled={false} onPublish={onPublish}/>);
  expect(screen.queryByRole('button',{name:'Publish selected source'})).toBeNull();
  fireEvent.change(screen.getByLabelText('Personal source to copy'),{target:{value:'goal:one'}});
@@ -12,6 +12,9 @@ it('requires selection and exact-preview consent again after source or guild cha
  fireEvent.click(screen.getByLabelText(/I consent to share exactly/));
  fireEvent.click(screen.getByRole('button',{name:'Publish selected source'}));
  expect(onPublish).toHaveBeenCalledWith(source);
+ fireEvent.click(screen.getByLabelText(/I consent to share exactly/));
+ view.rerender(<PublicationPicker guild="one" sources={[{...source,checksum:'semantic-v2:sha256:changed'}]} disabled={false} onPublish={onPublish}/>);
+ expect(screen.getByRole('button',{name:'Publish selected source'})).toBeDisabled();
  view.rerender(<PublicationPicker guild="two" sources={[source]} disabled={false} onPublish={onPublish}/>);
  expect(screen.getByRole('button',{name:'Publish selected source'})).toBeDisabled();
 });
