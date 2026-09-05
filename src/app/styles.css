@@ -1,0 +1,47 @@
+:root { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #e8ece5; background: #101817; font-synthesis: none; text-rendering: optimizeLegibility; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; }
+a { color: inherit; }
+a:focus-visible { outline: 2px solid #b9e891; outline-offset: 5px; }
+.app-shell { min-height: 100vh; display: grid; grid-template-columns: 258px minmax(0, 1fr); }
+.sidebar { padding: 42px 25px 26px; border-right: 1px solid #2b3531; display: flex; flex-direction: column; background: #131d1a; }
+.brand { display: flex; gap: 12px; align-items: center; font-size: 14px; letter-spacing: .14em; font-weight: 750; }
+.brand-mark { display: grid; place-items: center; width: 38px; height: 42px; border: 1px solid #a7cc88; border-radius: 12px 4px 12px 4px; color: #c2ec9f; font: italic 28px Georgia, serif; }
+.brand-subtitle { display: block; font-size: 8px; letter-spacing: .14em; margin-top: 7px; color: #a2b2a8; }
+.section-label, .eyebrow { text-transform: uppercase; font-size: 10px; font-weight: 650; letter-spacing: .16em; color: #a9b9ad; line-height: 1.6; }
+.sidebar > .section-label { margin: 56px 12px 15px; }
+nav { display: grid; gap: 7px; }
+nav a { padding: 14px 12px; min-height: 48px; text-decoration: none; border: 1px solid transparent; border-radius: 9px; display: flex; gap: 15px; align-items: center; font-size: 14px; color: #b8c6bd; }
+nav a:hover { background: #202c25; }
+nav a[aria-current] { background: #26382b; border-color: #41533b; color: #d0efb6; }
+.nav-number { font-size: 10px; opacity: .7; }
+.nav-arrow { margin-left: auto; }
+.upcoming { margin: 36px 12px; }
+.upcoming ul { list-style: none; padding: 0; margin: 17px 0; }
+.upcoming li { display: flex; align-items: center; justify-content: space-between; margin: 24px 0; color: #a0afa6; font-size: 13px; }
+.upcoming-tag { font-size: 9px; border: 1px solid #39463d; padding: 4px 7px; border-radius: 5px; }
+.sidebar-note { margin-top: auto; padding-top: 24px; font-size: 11px; color: #bdd7aa; }
+.sidebar-note p { color: #9bada0; line-height: 1.8; margin: 12px 0 0; }
+.status-dot { width: 6px; height: 6px; border-radius: 50%; background: #b0dc8b; display: inline-block; margin-right: 7px; }
+main { padding: 48px clamp(24px, 5vw, 80px) 24px; width: 100%; max-width: 1440px; margin: 0 auto; }
+main:focus { outline: none; }
+.page-header { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 36px; }
+h1 { font-weight: 520; font-size: 36px; letter-spacing: -.045em; margin: 7px 0 0; }
+.badge { border: 1px solid #354536; border-radius: 30px; padding: 10px 13px; font-size: 10px; white-space: nowrap; color: #c4d5bd; }
+.hero { overflow: hidden; position: relative; border: 1px solid #46563c; border-radius: 18px; padding: clamp(25px, 4vw, 52px); background: radial-gradient(ellipse at 95% 20%, #415331 0, transparent 60%), #253526; }
+.hero > :not(.hero-ornament) { position: relative; }
+.hero h2 { font: 400 clamp(30px, 3.4vw, 49px)/1.1 Georgia, "Times New Roman", serif; max-width: 470px; letter-spacing: -.035em; margin: 21px 0; }
+.hero p:not(.eyebrow) { color: #bfccb6; font-size: 14px; line-height: 1.8; }
+.hero-ornament { position: absolute; right: 15px; top: 0; font-size: 290px; line-height: 1; color: #bfe290; opacity: .12; pointer-events: none; }
+.outline-label { display: inline-block; border: 1px solid #758764; border-radius: 7px; padding: 11px 14px; font-size: 11px; color: #d1e5bf; margin-top: 17px; }
+.card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 23px; }
+.card { border: 1px solid #334037; border-radius: 14px; background: #19241f; padding: 28px; }
+.card h2 { font-weight: 500; font-size: 21px; letter-spacing: -.025em; margin: 17px 0 12px; }
+.card p:not(.eyebrow) { color: #b3c1b7; font-size: 13px; line-height: 1.9; }
+.card-footer { margin-top: 25px; padding-top: 17px; border-top: 1px solid #344137; font-size: 11px; color: #a6b59f; }
+.destination-card { min-height: 310px; max-width: 850px; }
+.destination-card p { max-width: 660px; }
+.page-footer { border-top: 1px solid #2c3830; margin-top: 43px; padding-top: 21px; display: flex; gap: 18px; justify-content: space-between; flex-wrap: wrap; font-size: 10px; line-height: 1.7; color: #a0afa4; }
+.skip-link { position: fixed; z-index: 2; top: -80px; left: 12px; padding: 14px; background: #26382b; }
+.skip-link:focus { top: 12px; }
+@media (max-width: 800px) { .app-shell { grid-template-columns: 1fr; } .sidebar { padding: 22px 20px; border-right: 0; border-bottom: 1px solid #2b3531; } .brand { margin-bottom: 23px; } .sidebar > .section-label, .sidebar-note { display: none; } nav { grid-template-columns: repeat(3, 1fr); gap: 7px; } nav a { justify-content: center; padding: 12px 8px; gap: 8px; } .nav-arrow { display: none; } .upcoming { margin: 17px 0 0; } .upcoming .section-label { display: none; } .upcoming ul { display: flex; gap: 16px; flex-wrap: wrap; margin: 0; } .upcoming li { gap: 6px; margin: 0; font-size: 10px; } .upcoming-tag { font-size: 8px; padding: 3px 4px; } main { padding: 27px 20px; } .page-header { flex-wrap: wrap; gap: 15px; margin-bottom: 23px; } .badge { font-size: 9px; } .card-grid { grid-template-columns: 1fr; gap: 16px; } .hero { padding: 29px 24px; } .card { padding: 24px; } .page-footer { margin-top: 29px; } }
