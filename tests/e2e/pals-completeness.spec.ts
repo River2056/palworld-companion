@@ -10,6 +10,38 @@ async function addPal(page:Page,speciesId:string,nickname:string,gender='unknown
 }
 const savedRoutes=(page:Page)=>page.getByRole('region',{name:'Saved breeding checklists'});
 
+async function expectFavoriteSaved(page:Page,nickname:string,favorite:boolean) {
+ const button=page.getByRole('button',{name:`Favorite ${nickname}`,exact:true});
+ // aria-pressed comes from the persisted snapshot, not an optimistic draft.
+ // Enabled also proves useWorkspace.run has finished its post-write refresh.
+ await expect(button).toHaveAttribute('aria-pressed',String(favorite));
+ await expect(button).toBeEnabled();
+ await expect(page.getByRole('alert')).toHaveCount(0);
+ const persisted=await page.evaluate(async name=>{
+  const existing=await indexedDB.databases();
+  // Support both the original Pal DB and the consolidated personal schema.
+  // Never open a missing DB (which would create one) or write/reset any data.
+  for(const dbName of ['palworld-companion','palworld-companion-pals']) {
+   if(!existing.some(db=>db.name===dbName))continue;
+   const db=await new Promise<IDBDatabase>((resolve,reject)=>{
+    const request=indexedDB.open(dbName);
+    request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);
+   });
+   try {
+    if(!db.objectStoreNames.contains('pals'))continue;
+    const rows=await new Promise<{nickname:string;favorite?:boolean}[]>((resolve,reject)=>{
+     const tx=db.transaction('pals','readonly');const request=tx.objectStore('pals').getAll();
+     tx.oncomplete=()=>resolve(request.result);tx.onabort=()=>reject(tx.error);
+    });
+    return rows.filter(p=>p.nickname===name).map(p=>p.favorite);
+   } finally {db.close();}
+  }
+  throw new Error('No existing Pal store found');
+ },nickname);
+ // One immediate readback: do not poll past a falsely settled UI or default undefined to false.
+ expect(persisted).toEqual([favorite]);
+}
+
 test('target → save route → manual completion → explicit offspring → favorite → reload',async({page})=>{
  const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));
  await page.goto('/#/breeding');
@@ -40,7 +72,7 @@ test('target → save route → manual completion → explicit offspring → fav
  await page.getByRole('button',{name:'Save Pal',exact:true}).click();
  await expect(page.getByRole('heading',{name:'First hatch',exact:true})).toBeVisible();
  await page.getByRole('button',{name:'Favorite First hatch',exact:true}).click();
- await expect(page.getByRole('button',{name:'Favorite First hatch',exact:true})).toHaveAttribute('aria-pressed','true');
+ await expectFavoriteSaved(page,'First hatch',true);
  await page.reload();
  await expect(page.getByRole('region',{name:'Pal roster',exact:true}).getByRole('article')).toHaveCount(3);
  await expect(savedRoutes(page).getByRole('checkbox',{name:'Step 1 complete (manual)',exact:true})).toBeChecked();
@@ -49,6 +81,7 @@ test('target → save route → manual completion → explicit offspring → fav
  await expect(child).toContainText('Penking · unknown');
  await expect(savedRoutes(page)).toContainText('does not verify gender');
  await page.getByRole('button',{name:'Favorite First hatch',exact:true}).click();
+ await expectFavoriteSaved(page,'First hatch',false);
  await page.reload();
  await expect(page.getByRole('button',{name:'Favorite First hatch',exact:true})).toHaveAttribute('aria-pressed','false');
  expect(errors).toEqual([]);
