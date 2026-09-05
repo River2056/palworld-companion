@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ApiError, GuildClient, localEndpoints, TaskRetry, validateEndpoint } from './client';
 import type { Activity, Endpoints, Guild, Member, Session, Task, TaskInput } from './client';
 import './guild.css';
@@ -56,6 +56,8 @@ export function GuildWorkspace({ draft, workspace, onSummary, onSession, logoutS
   const retry = useRef(new TaskRetry());
   const lock = useRef(false);
   const epoch = useRef(0);
+  // Invalidate the latest generation, not a value captured when mounting.
+  const invalidateRequests = useCallback(() => { epoch.current++; }, []);
   const scope = useRef({ user: '', guild: '' });
   const callbacks = useRef({ onSummary, onSession });
   callbacks.current = { onSummary, onSession };
@@ -63,15 +65,15 @@ export function GuildWorkspace({ draft, workspace, onSummary, onSession, logoutS
   const purgeRef = useRef<() => void>(() => {});
   useEffect(() => { if (logoutSignal) void logoutRef.current(); }, [logoutSignal]);
   useEffect(() => {
-    const offline = () => { purgeRef.current(); setDisconnected(true); };
+    const offline = () => { purgeRef.current(); setDisconnected(true); setError(''); setNotice('Browser went offline. Selected guild data and pending retry payloads were cleared. Nothing will be resent automatically. Reconnect, refresh and select your guild; inspect server state before explicitly re-entering any unconfirmed change.'); };
     window.addEventListener('offline', offline);
-    return () => { epoch.current++; window.removeEventListener('offline', offline); callbacks.current.onSummary?.(null); callbacks.current.onSession?.(false); };
-  }, []);
+    return () => { invalidateRequests(); window.removeEventListener('offline', offline); callbacks.current.onSummary?.(null); callbacks.current.onSession?.(false); };
+  }, [invalidateRequests]);
   const client = () => new GuildClient(endpoints, session?.access_token);
   const owner = members.some(m => m.user_id === session?.user.id && m.role === 'owner');
   const pending = !!retry.current.pending || !!stockRetry.current.pending;
   function clearPrivateState() {
-    epoch.current++; callbacks.current.onSummary?.(null);
+    invalidateRequests(); callbacks.current.onSummary?.(null);
     scope.current.guild = '';
     setProposal(null); setCompared(false);
     setStock([]); setInvites([]); setRename(''); setItem(''); setQuantity(0); stockRetry.current = new StockRetry();

@@ -5,7 +5,7 @@ import { randomUUID } from 'node:crypto';
 test('extended guild: quantities, stock CAS, invite revoke, member purge and offline safety', async ({ page, browser, baseURL }) => {
   test.skip(process.env.GUILD_E2E !== '1', 'Requires opt-in and real local guild services.');
   test.setTimeout(90000);
-  const { authUrl, restUrl } = JSON.parse(readFileSync(new URL('../../scripts/guild/.local/config.json', import.meta.url), 'utf8')) as { authUrl: string; restUrl: string };
+  const { authUrl, restUrl } = JSON.parse(readFileSync(process.env.GUILD_E2E_CONFIG || 'scripts/guild/.local/config.json', 'utf8')) as { authUrl: string; restUrl: string };
   const suffix = randomUUID();
   const errors: string[] = [];
   const other = await browser.newContext({ baseURL });
@@ -102,6 +102,7 @@ test('extended guild: quantities, stock CAS, invite revoke, member purge and off
     await expect(member.getByRole('button', { name: 'Save shared stock' })).toBeDisabled();
     await member.getByRole('button', { name: 'Reload conflicting tasks' }).click();
     await expect(member.getByText('item:wood: 15 · revision 2', { exact: true })).toBeVisible();
+    await member.getByRole('button', { name: 'Discard rejected proposal' }).click();
     await stock(member, '18');
     await expect(member.getByText('item:wood: 18 · revision 3', { exact: true })).toBeVisible();
     await refresh(page);
@@ -109,10 +110,13 @@ test('extended guild: quantities, stock CAS, invite revoke, member purge and off
     await other.setOffline(true);
     await member.getByRole('button', { name: 'Refresh from server' }).click();
     await expect(member.getByText(/Disconnected \/ read-only:/)).toBeVisible();
-    await expect(member.getByRole('button', { name: 'Save shared stock' })).toBeDisabled();
-    await expect(member.locator('.guild-tasks')).toContainText('7 / 30 delivered');
+    await expect(member.getByRole('button', { name: 'Save shared stock' })).toHaveCount(0);
+    await expect(member.locator('.guild-tasks')).toHaveCount(0);
+    await expect(member.getByLabel('Selected guild')).toHaveValue('');
     await other.setOffline(false);
     await refresh(member);
+    await member.getByLabel('Selected guild').selectOption({ label: `Renamed ${suffix}` });
+    await expect(member.locator('.guild-tasks')).toContainText('7 / 30 delivered');
     await page.getByRole('button', { name: /^Remove member / }).click();
     await expect(page.getByRole('button', { name: /^Remove member / })).toHaveCount(0);
     await member.getByRole('button', { name: 'Refresh from server' }).click();

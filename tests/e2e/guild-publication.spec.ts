@@ -3,9 +3,9 @@ import { readFileSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import type { Session, Task, TaskInput, StockInput } from '../../src/features/guild/client';
 
-const configPath = process.env.GUILD_BROWSER_CONFIG;
-test.skip(!configPath, 'Opt-in: supply an isolated GUILD_BROWSER_CONFIG and Vite URL.');
-for (const width of [1280, 390]) test(`publication, stale source, conflicts and privacy (${width}px)`, async ({ browser }) => {
+const configPath = process.env.GUILD_E2E_CONFIG || process.env.GUILD_BROWSER_CONFIG || 'scripts/guild/.local/config.json';
+test.skip(process.env.GUILD_E2E !== '1', 'Explicit GUILD_E2E=1 requires real local guild services.');
+for (const width of [1280, 390]) test(`publication, stale source, conflicts and privacy (${width}px)`, async ({ browser, baseURL }) => {
   test.setTimeout(90000);
   const { authUrl, restUrl } = JSON.parse(readFileSync(configPath!, 'utf8'));
   const page=await browser.newPage({viewport: {width,height:900}}); const requests:string[]=[];page.on('request',request=>requests.push(request.url()));const errors:string[]=[]; const mutations:(TaskInput | StockInput)[]=[]; let session:Session;
@@ -13,11 +13,11 @@ for (const width of [1280, 390]) test(`publication, stale source, conflicts and 
   page.on('request',r=>{if(r.url().includes('/rpc/mutate_task') || r.url().includes('/rpc/set_shared_stock')) mutations.push(r.postDataJSON());});
   page.on('response',async r=>{if(r.url()===`${authUrl}/signup` || r.url().includes('/token?')) session=await r.json();});
   const suffix=randomUUID(),email=`publication-${suffix}@example.test`,password=`Test-${suffix}!`;
-  await page.goto(`${process.env.GUILD_BROWSER_URL || 'http://127.0.0.1:4187'}/#/guild`);
+  await page.goto(`${process.env.GUILD_BROWSER_URL || baseURL!}/#/guild`);
   await page.evaluate(async()=>{const {workspaceStore}=await import(String('/src/data/workspace.ts')); const {catalog}=await import(String('/src/domain/catalog.ts'));await workspaceStore.save({version:1,goals:[{id:'acceptance-goal',item:catalog.recipes[0].id,quantity:2,completed:0,notes:'NEVER SHARE THIS'}],stock:{},recent:[]});});
   await page.reload();
   await expect(page.getByRole('link',{name:'Data sources and licenses'})).toHaveAttribute('href','/attribution.html');
-  expect(requests.every(url => new URL(url).origin === new URL(process.env.GUILD_BROWSER_URL || 'http://127.0.0.1:4187').origin)).toBe(true);
+  expect(requests.every(url => new URL(url).origin === new URL(process.env.GUILD_BROWSER_URL || baseURL!).origin)).toBe(true);
   async function login(signup=false) {
    await page.getByLabel('Auth URL',{exact:true}).fill(authUrl);await page.getByLabel('REST URL',{exact:true}).fill(restUrl);
    await page.getByLabel(/I trust both endpoints/).check();await page.getByLabel('Email',{exact:true}).fill(email);await page.getByLabel('Password',{exact:true}).fill(password);
@@ -79,11 +79,15 @@ for (const width of [1280, 390]) test(`publication, stale source, conflicts and 
   await page.context().setOffline(true);
   await page.getByRole('button',{name:'Refresh from server'}).click();
   await expect(page.getByText(/Disconnected \/ read-only:/)).toBeVisible();
-  await expect(page.getByRole('button',{name:'Save shared stock'})).toBeDisabled();
+  await expect(page.getByRole('button',{name:'Save shared stock'})).toHaveCount(0);
+  await expect(page.getByLabel('Selected guild')).toHaveValue('');
   expect(mutations).toHaveLength(beforeOffline);
   await page.context().setOffline(false);
   await page.getByRole('button',{name:'Refresh from server'}).click();
   await expect(page.getByText('Loaded from server. No background sync.',{exact:true})).toBeVisible();
+  await page.getByLabel('Selected guild').selectOption(guild);
+  await expect(page.getByRole('button',{name:'Issue 24-hour invitation'})).toBeEnabled();
+  expect(mutations).toHaveLength(beforeOffline);
   // A before-only owner activity must expose its change details.
   page.on('dialog', dialog => dialog.accept());
   await page.getByRole('button',{name:'Issue 24-hour invitation'}).click();
