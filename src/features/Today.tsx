@@ -4,53 +4,59 @@ import { liveQuery } from 'dexie';
 import type { WorkspaceProps } from './Craft';
 import { Queue } from './Queue';
 import { Shopping } from './Shopping';
-import { catalog } from '../domain/catalog';
-import { plan } from '../domain/planner';
+import { useCatalogRuntime, planRuntimeWorkspace, type CatalogRuntime } from './catalog-runtime';
+import type { CatalogSnapshot } from '../domain/catalog-snapshot';
 import { palStore, type PalSnapshot } from './pals/storage';
-import { analyzeBase, catalog as palCatalog, routeWarnings, speciesName, validateBase, validateRoute, type Base, type SavedRoute } from './pals/domain';
+import { analyzeBase, routeWarnings, speciesName, validateBase, validateRoute, type Base, type SavedRoute } from './pals/domain';
 
-function speciesLabel(id:string) {
- return palCatalog.species.some(s=>s.id===id)?speciesName(id):`Unknown species ID: ${id}`;
+function speciesLabel(id:string, catalog:CatalogSnapshot['pals'] | undefined) {
+ return catalog?.species.some(s=>s.id===id)?speciesName(id,catalog):`Unknown species ID: ${id}`;
 }
 
-function BreedingAction({route,personal}:{route:SavedRoute;personal:PalSnapshot}) {
+function BreedingAction({route,personal,runtime}:{route:SavedRoute;personal:PalSnapshot;runtime:CatalogRuntime}) {
+ const snapshot=route.catalogBinding?.state==='bound'?runtime.resolve(route.catalogBinding.snapshotId):undefined;
+ const palCatalog=snapshot?.pals;
+ const label=(id:string)=>speciesLabel(id,palCatalog);
  let content;
  try {
   validateRoute(route);
   const next=route.steps.find(step=>!route.completed.includes(step.id));
-  const warnings=routeWarnings(route,personal.pals);
+  const warnings=routeWarnings(route,personal.pals,palCatalog??null);
   const references=route.steps.flatMap(step=>[
-   ...(!palCatalog.species.some(s=>s.id===step.childId)?[`Unknown child species ID: ${step.childId}`]:[]),
-   ...(!palCatalog.breedingPairs.some(pair=>pair.id===step.pairId)?[`Unknown breeding pair ID: ${step.pairId}`]:[]),
+   ...(!palCatalog?.species.some(s=>s.id===step.childId)?[`Unknown child species ID: ${step.childId}`]:[]),
+   ...(!palCatalog?.breedingPairs.some(pair=>pair.id===step.pairId)?[`Unknown breeding pair ID: ${step.pairId}`]:[]),
    ...step.parents.flatMap(ref=>{
     if(!ref.startsWith('owned:')) return [];
     const parent=personal.pals.find(p=>p.id===ref.slice(6));
     if(!parent) return [`Missing parent ID: ${ref}`];
-    if(parent.archived) return [`Archived parent: ${parent.nickname||speciesLabel(parent.speciesId)} (${ref})`];
-    return !palCatalog.species.some(s=>s.id===parent.speciesId)?[`${ref}: ${speciesLabel(parent.speciesId)}`]:[];
+    if(parent.archived) return [`Archived parent: ${parent.nickname||label(parent.speciesId)} (${ref})`];
+    return !palCatalog?.species.some(s=>s.id===parent.speciesId)?[`${ref}: ${label(parent.speciesId)}`]:[];
    }),
   ]);
   content=<>
-   {next?<p>Next incomplete step {route.steps.indexOf(next)+1}: breed {speciesLabel(next.childId)} for target {speciesLabel(route.targetId)}.</p>:<p>{warnings.length||references.length?'Checklist marked complete, but saved references need review.':'All saved steps marked complete manually; offspring and gender are not verified.'}</p>}
+   {!palCatalog?<p role="alert">Catalog migration required: {route.catalogBinding?.state==='bound'?route.catalogBinding.snapshotId:'legacy-unbound'}. Exact saved reference unavailable; checklist progress is not a compatibility claim.</p>:next?<p>Next incomplete step {route.steps.indexOf(next)+1}: breed {label(next.childId)} for target {label(route.targetId)}.</p>:<p>{warnings.length||references.length?'Checklist marked complete, but saved references need review.':'All saved steps marked complete manually; offspring and gender are not verified.'}</p>}
    {!!(warnings.length||references.length)&&<ul aria-label="Saved route warnings">{[...new Set([...references,...warnings])].map(warning=><li key={warning}>{warning}</li>)}</ul>}
   </>;
  } catch {
   content=<><p role="alert">Saved route {route.id} has missing steps or an invalid checklist/graph. Progress is unknown; review or replace it in Breeding.</p><details><summary>Inspect saved step and checklist references</summary><pre>{JSON.stringify({steps:route.steps,completed:route.completed},null,2)}</pre></details></>;
  }
- return <article className="card stack"><h3>Breeding target: {speciesLabel(route.targetId)}</h3><p>Saved route: {route.id}</p>{content}<a href="#/breeding">Review saved route for {speciesLabel(route.targetId)}</a></article>;
+ return <article className="card stack"><h3>Breeding target: {label(route.targetId)}</h3><p>Saved route: {route.id}</p>{content}<a href="#/breeding">Review saved route for {label(route.targetId)}</a></article>;
 }
 
-function BaseAction({base,personal}:{base:Base;personal:PalSnapshot}) {
+function BaseAction({base,personal,runtime}:{base:Base;personal:PalSnapshot;runtime:CatalogRuntime}) {
+ const palCatalog=runtime.selected?.pals;
+ const label=(id:string)=>speciesLabel(id,palCatalog);
+ if(!palCatalog)return <article><h3>Base: {base.name}</h3><p>Selected snapshot unavailable; coverage unknown. Base assignments have no saved catalog binding.</p></article>;
  let content;
  try {
-  const analysis=analyzeBase(base,personal.pals,personal.bases);
+  const analysis=analyzeBase(base,personal.pals,personal.bases,palCatalog);
   const warnings:string[]=[];
-  try {validateBase(base,personal.bases,personal.pals);} catch(e) {warnings.push(`Assignment state needs review: ${e instanceof Error?e.message:String(e)}`);}
+  try {validateBase(base,personal.bases,personal.pals,palCatalog);} catch(e) {warnings.push(`Assignment state needs review: ${e instanceof Error?e.message:String(e)}`);}
   for(const id of base.workerIds) {
    const worker=personal.pals.find(p=>p.id===id);
    if(!worker) warnings.push(`Missing worker ID: ${id}`);
-   else if(worker.archived) warnings.push(`Archived worker: ${worker.nickname||speciesLabel(worker.speciesId)} (${id})`);
-   else if(!palCatalog.species.some(s=>s.id===worker.speciesId)) warnings.push(`Worker ${id}: ${speciesLabel(worker.speciesId)}`);
+   else if(worker.archived) warnings.push(`Archived worker: ${worker.nickname||label(worker.speciesId)} (${id})`);
+   else if(!palCatalog.species.some(s=>s.id===worker.speciesId)) warnings.push(`Worker ${id}: ${label(worker.speciesId)}`);
   }
   content=<>
    {warnings.length>0&&<ul aria-label="Base assignment warnings">{warnings.map(warning=><li key={warning}>{warning}</li>)}</ul>}
@@ -60,10 +66,11 @@ function BaseAction({base,personal}:{base:Base;personal:PalSnapshot}) {
  } catch {
   content=<p role="alert">Saved base {base.id} has invalid assignment or slot data. Coverage is unknown; review it in Bases.</p>;
  }
- return <article className="card stack"><h3>Base: {base.name||base.id}</h3>{content}<a href="#/bases">Review assignments for {base.name||base.id}</a></article>;
+ return <article className="card stack"><h3>Base: {base.name||base.id}</h3><p>Analysis context: selected snapshot {runtime.metadata.selectedCatalog}; base assignments are not snapshot-bound.</p>{content}<a href="#/bases">Review assignments for {base.name||base.id}</a></article>;
 }
 
 export function Today(props:WorkspaceProps & { guildSummary?: TodayGuildSummary | null; guildAuthenticated?: boolean; onGuildLogout?: () => void }) {
+ const {runtime,error:catalogError}=useCatalogRuntime();
  const [personal,setPersonal]=useState<PalSnapshot>();
  const [error,setError]=useState('');
  const [attempt,setAttempt]=useState(0);
@@ -76,13 +83,13 @@ export function Today(props:WorkspaceProps & { guildSummary?: TodayGuildSummary 
   return()=>{active=false;subscription.unsubscribe();};
  },[attempt]);
  let summary='Plan blocked: edit unsafe quantities before calculating.';
- try {const p=plan(catalog,props.data.goals,props.data.stock);summary=`${props.data.goals.filter(g=>g.completed<g.quantity).length} active goals · ${props.data.goals.filter(g=>g.completed===g.quantity).length} completed · ${p.blocked.length} blocked · ${p.direct.filter(r=>r.missing>0).length} direct ingredient types missing`; }catch{/* Shopping shows recovery guidance. */}
- return <div className="stack"><section className="hero"><p className="eyebrow">Your next session</p><h2>A little planning. More exploring.</h2><p>{summary}</p><p>No game connection. All progress and inventory are manually entered in this browser.</p><a className="outline-label" href="#/craft">Find a recipe</a></section>
+ try {if(!runtime)throw new Error('Catalog not loaded');const p=planRuntimeWorkspace(runtime,props.data);summary=`${props.data.goals.filter(g=>g.completed<g.quantity).length} active goals · ${props.data.goals.filter(g=>g.completed===g.quantity).length} completed · ${p.goalResults.filter(g=>g.status==='unresolved').length} blocked · ${p.direct.filter(r=>r.missing>0).length} direct ingredient types missing${p.complete?'':' · Partial totals; unresolved goals excluded'}`; }catch{/* Shopping shows recovery guidance. */}
+ return <div className="stack"><section className="hero"><p className="eyebrow">Your next session</p><h2>A little planning. More exploring.</h2><p>{runtime?summary:catalogError||'Loading exact catalog references…'}</p><p>No game connection. All progress and inventory are manually entered in this browser.</p><a className="outline-label" href="#/craft">Find a recipe</a></section>
  <section className="card stack" aria-label="Personal Pal and base summary"><h2>Pals & bases</h2>{error&&<><p role="alert">{error}</p><button onClick={()=>{setError('');setAttempt(value=>value+1);}}>Retry personal summary</button></>}{!personal&&!error&&<p role="status">Loading local Pals and bases…</p>}{personal&&<>
  <p>{personal.pals.filter(p=>!p.archived).length} active Pals · {personal.pals.filter(p=>p.archived).length} archived · {personal.routes.length} saved breeding routes</p>
  <h3>Saved breeding actions</h3><p>Checklists only. Opening Breeding does not create a route or breed a Pal. Confirm parent availability and compatible gender before acting.</p>
- {personal.routes.length?personal.routes.map(route=><BreedingAction key={route.id} route={route} personal={personal}/>):<p>No saved breeding routes. Choose and save a route in Breeding to track its next step.</p>}
- <h3>Base work warnings</h3>{personal.bases.length?personal.bases.map(base=><BaseAction key={base.id} base={base} personal={personal}/>):<p>No bases saved. Add a named base and work slots to assess coverage.</p>}
+ {personal.routes.length?personal.routes.map(route=>runtime?<BreedingAction key={route.id} route={route} personal={personal} runtime={runtime}/>:<p key={route.id}>Loading saved route reference…</p>):<p>No saved breeding routes. Choose and save a route in Breeding to track its next step.</p>}
+ <h3>Base work warnings</h3>{personal.bases.length?personal.bases.map(base=>runtime?<BaseAction key={base.id} base={base} personal={personal} runtime={runtime}/>:<p key={base.id}>Loading base analysis context…</p>):<p>No bases saved. Add a named base and work slots to assess coverage.</p>}
  </>}<a href="#/breeding">Manage Pals and breeding routes</a><a href="#/bases">Review base assignments</a><p>Settings provides separate crafting and Pal/base backups. Neither includes guild data.</p></section>
  <section className="card stack" aria-label="Optional guild planning"><h2>Optional guild planning</h2><p>Today never signs in or refreshes Guild automatically. Open Guild, approve trusted endpoints and sign in explicitly. Personal plans are never published automatically.</p>{props.guildSummary?<><h3>{props.guildSummary.guildName}</h3><p>Guild: {props.guildSummary.guildId} · User: {props.guildSummary.userId}</p><p>{props.guildSummary.tasks.length} assigned active tasks · {props.guildSummary.unread} unread events since last seen</p><ul>{props.guildSummary.tasks.map(task=><li key={task.id}>{task.title} · {task.status}</li>)}</ul><p>Last explicitly loaded snapshot, not live. Access changes are checked only when you refresh in Guild. Offline or failed authorization clears this summary.</p></>:<p>No authenticated guild summary loaded. Choose a guild after signing in to see your assigned active tasks and unread activity.</p>}{props.guildAuthenticated&&<><p>Session retained in memory while navigating. Sign out or reload to clear it; no private guild data is saved.</p><button type="button" onClick={props.onGuildLogout}>Sign out of Guild</button></>}<a href="#/guild">Open guild workspace</a><a href="#/guild">Refresh deliberately in Guild</a></section>
  <Queue {...props}/><Shopping data={props.data}/></div>;

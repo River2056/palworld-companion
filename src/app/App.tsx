@@ -5,6 +5,7 @@ import { Queue, Inventory } from '../features/Queue';
 import { Settings } from '../features/Settings';
 import type { TodayGuildSummary } from '../features/guild/GuildWorkspace';
 import { Today } from '../features/Today';
+import { useCatalogRuntime } from '../features/catalog-runtime';
 import { PalWorkspace, BaseWorkspace } from '../features/pals';
 import { PalBackupPanel } from '../features/pals/BackupPanel';
 
@@ -16,6 +17,7 @@ function readDestination(): Destination {
 }
 
 export default function App() {
+  const {runtime,error:catalogError}=useCatalogRuntime();
   const [destination, setDestination] = useState(readDestination);
   const [guildOpened, setGuildOpened] = useState(() => readDestination() === 'Guild');
   const [guildSummary, setGuildSummary] = useState<TodayGuildSummary | null>(null);
@@ -53,8 +55,8 @@ export default function App() {
       </aside>
       <main id="main-content" tabIndex={-1}>
         <header className="page-header"><div><p className="eyebrow">A little planning. More exploring.</p><h1>{destination}</h1></div><span className="badge"><span className="status-dot"/> {destination==='Guild'?'Optional shared workspace':'Personal workspace'}</span></header>
-        <p className="catalog-status">Catalog: 10 reference recipes · 7 leaf materials · Game version: unverified</p>
-        <p className="warning">Mixed-revision reference catalog, not current-game verified. Check recipe source links against your game. Station construction costs and alternate recipes excluded.</p>
+        <p className="catalog-status">{runtime?.selected ? `Catalog: ${runtime.selected.craft.recipes.length} reference recipes · ${runtime.selected.craft.items.filter(i=>i.kind==='raw').length} leaf materials · Game version: ${runtime.selected.manifest.gameVersion??'unverified'}` : catalogError||'Selected catalog unavailable; calculations require exact saved references.'}</p>
+        {runtime?.selected&&<p className="warning">Selected reference: {runtime.selected.manifest.datasetId} · {runtime.selected.id} · {runtime.selected.manifest.verificationStatus}. Snapshot metadata is not a current-patch compatibility claim. Check source links against your game. {runtime.selected.manifest.notes?.join(' ')}</p>}
         {error&&<p role="alert">{error}</p>}
         {!data&&!error&&<p role="status">Loading local workspace…</p>}
         {destination!=='Guild'&&<p role="status" aria-live="polite">{busy?'Saving…':data?'Saved in this browser':''}</p>}

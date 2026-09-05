@@ -1,0 +1,56 @@
+import 'fake-indexeddb/auto';
+import {afterEach,expect,test} from 'vitest';
+import {cleanup,render,screen} from '@testing-library/react';
+import {WorkspaceStore} from '../../data/workspace';
+import {PalStore} from './storage';
+import {bundledSnapshotPayload,createCatalogSnapshot} from '../../domain/catalog-snapshot';
+import {previewCatalogMigration,acceptCatalogMigration,cancelCatalogMigration} from '../../data/catalog-migration';
+import {loadCatalogRuntime} from '../catalog-runtime';
+import {analyzeBase,enumerateRoutes,routeWarnings,type Pal} from './domain';
+import {PalWorkspace,BaseWorkspace} from './Workspaces';
+const dbs:WorkspaceStore[]=[];
+afterEach(async()=>{cleanup();for(const db of dbs)await db.delete();dbs.length=0;});
+async function fixture(){
+ const db=new WorkspaceStore('pal-runtime-'+crypto.randomUUID());dbs.push(db);await db.ready();
+ const payload=bundledSnapshotPayload();payload.manifest.datasetId='SYNTHETIC integration rules, not game facts';
+ const pair=payload.pals.breedingPairs[0];
+ const pals:Pal[]=pair.parentIds.map((speciesId,i)=>({id:`p${i}`,speciesId,nickname:`Fixture ${i}`,gender:i?'female':'male',passives:[],notes:'retained',location:'',archived:false}));
+ const original=await createCatalogSnapshot(payload);
+ const p=await previewCatalogMigration(db,original);await acceptCatalogMigration(db,p.id,p.expectedRevision);
+ const store=new PalStore(db);for(const pal of pals)await store.savePal(pal);
+ const generated=enumerateRoutes(pals,pair.childId,4,40,original.pals)[0];expect(generated).toBeDefined();
+ const generation=await db.personalMetadata();
+  await store.saveRoute({...generated,completed:[]},{snapshotId:generation.selectedCatalog,revision:generation.revision});
+ const work=Object.keys(payload.pals.species[0].workSuitability)[0];
+ await store.saveBase({id:'b',name:'Fixture base',capacity:2,workerIds:['p0'],slots:[{id:'slot',work,minimum:1,priority:5}]});
+ for(const species of payload.pals.species) (species.workSuitability as Record<string,number>)[work]=0;
+ payload.pals.breedingPairs[0].parentIds=[pair.parentIds[1],pair.parentIds[0]];
+ const candidate=await createCatalogSnapshot(payload);
+ return {db,store,original,candidate,pals};
+}
+test('same-ID changed rules migrate only binding, exact old rules survive selection and cancel is read-only',async()=>{
+ const {db,store,original,candidate,pals}=await fixture();const saved=(await store.snapshot()).routes[0];
+ const before=await db.personalMetadata();const preview=await previewCatalogMigration(db,candidate,{routes:{[saved.id]:'keep'}});
+ cancelCatalogMigration(preview.id);expect(await db.personalMetadata()).toEqual(before);
+ const keep=await previewCatalogMigration(db,candidate,{routes:{[saved.id]:'keep'}});await acceptCatalogMigration(db,keep.id,keep.expectedRevision);
+ const runtime=await loadCatalogRuntime(db);expect(runtime.selected?.id).toBe(candidate.id);
+ expect((await store.snapshot()).routes[0]).toEqual(saved);
+ expect(routeWarnings(saved,pals,runtime.resolve(original.id)!.pals)).toEqual([]);
+ expect(routeWarnings(saved,pals,candidate.pals).join(' ')).toContain('parent species changed');
+ const migrate=await previewCatalogMigration(db,candidate,{routes:{[saved.id]:'migrate'}});await acceptCatalogMigration(db,migrate.id,migrate.expectedRevision);
+ const after=(await store.snapshot()).routes[0];expect(after).toEqual({...saved,catalogBinding:{state:'bound',snapshotId:candidate.id}});
+ render(<PalWorkspace store={store}/>);expect((await screen.findAllByText(/Step 1: parent species changed/)).length).toBeGreaterThan(0);
+ cleanup();render(<BaseWorkspace store={store}/>);expect(await screen.findByText(/Base assignments are not snapshot-bound/)).toBeInTheDocument();
+ const personal=await store.snapshot();expect(analyzeBase(personal.bases[0],pals,personal.bases,candidate.pals).shortage).toBe(1);
+});
+test('legacy and missing saved references never claim compatibility; legacy adoption is explicit',async()=>{
+ const {db,store,candidate}=await fixture();const saved=(await store.snapshot()).routes[0];
+ await db.write(()=>db.routes.put({...saved,catalogBinding:{state:'legacy-unbound',claimedVersion:saved.sourceVersion}}));
+ render(<PalWorkspace store={store}/>);expect(await screen.findByText(/Catalog migration required: exact saved snapshot unavailable/)).toBeInTheDocument();
+ expect(screen.getByLabelText('Step 1 complete (manual)')).toBeDisabled();
+ await expect(previewCatalogMigration(db,candidate,{routes:{[saved.id]:'migrate'}})).rejects.toThrow('Acknowledge');
+ const adopt=await previewCatalogMigration(db,candidate,{routes:{[saved.id]:'migrate'},acknowledgeLegacy:true});await acceptCatalogMigration(db,adopt.id,adopt.expectedRevision);
+ expect((await store.snapshot()).routes[0].catalogBinding).toEqual({state:'bound',snapshotId:candidate.id});
+ const missing=`sha256:${'a'.repeat(64)}` as const;await db.write(()=>db.routes.put({...saved,catalogBinding:{state:'bound',snapshotId:missing}}));
+ expect(await screen.findByText(/Catalog migration required: exact saved snapshot unavailable/)).toBeInTheDocument();expect((await store.snapshot()).routes[0].catalogBinding).toEqual({state:'bound',snapshotId:missing});
+});

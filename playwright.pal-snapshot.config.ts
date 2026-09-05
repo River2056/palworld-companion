@@ -1,0 +1,2 @@
+import {defineConfig,devices} from '@playwright/test';
+export default defineConfig({testDir:'./tests/e2e',testMatch:'pal-snapshot-runtime.spec.ts',outputDir:'/tmp/palworld-pal-snapshot-results',reporter:'list',use:{...devices['Desktop Chrome'],baseURL:'http://127.0.0.1:4293',trace:'retain-on-failure'},webServer:{command:'npm run dev -- --port 4293 --strictPort',url:'http://127.0.0.1:4293',reuseExistingServer:false}});
