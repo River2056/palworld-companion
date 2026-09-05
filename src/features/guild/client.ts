@@ -15,6 +15,7 @@ export function validateEndpoint(value: string): string {
 }
 export class ApiError extends Error {
   constructor(message: string, public status = 0, public code = '') { super(message); }
+  get denied() { return this.status === 401 || this.status === 403 || this.code === '42501'; }
   get uncertain() { return this.status === 0 || this.status >= 500 || this.status === 408 || this.status === 429; }
   get conflict() { return this.code === 'PT409' || this.code === '40001' || this.status === 409; }
 }
@@ -32,6 +33,8 @@ export class GuildClient {
         ...(body === undefined ? {} : { body: JSON.stringify(body) }), signal: AbortSignal.timeout(15000),
       });
     } catch { throw new ApiError('Network unavailable or request timed out. Server outcome may be unknown.'); }
+    // Preserve authoritative denial even when an error body is empty or not JSON.
+    if (response.status === 401 || response.status === 403) throw new ApiError('Authentication or guild access denied. Private data cleared.', response.status);
     const text = await response.text();
     let data;
     try { data = text ? JSON.parse(text) : null; } catch { throw new ApiError('Unreadable server response; outcome unknown.'); }

@@ -31,26 +31,53 @@ export function GuildWorkspace({ draft }: GuildWorkspaceProps = {}) {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [conflict, setConflict] = useState(false);
+  const [disconnected, setDisconnected] = useState(false);
   const retry = useRef(new TaskRetry());
   const lock = useRef(false);
   const client = () => new GuildClient(endpoints, session?.access_token);
   const owner = members.some(m => m.user_id === session?.user.id && m.role === 'owner');
   const pending = !!retry.current.pending;
-  async function run(action: () => Promise<void>) {
-    if (lock.current) return;
+  function clearPrivateState() {
+    setGuild(''); setTasks([]); setMembers([]); setDigest([]); setIssuedInvite('');
+    setPublish(false); setTitle(''); setInvite(''); setAccept(false); setConflict(false);
+    retry.current = new TaskRetry();
+  }
+  async function run(action: () => Promise<void>, allowDisconnected = false) {
+    if (lock.current || (session && disconnected && !allowDisconnected)) return;
     lock.current = true; setBusy(true); setError(''); setNotice('');
     try { await action(); } catch (e) {
       setError(e instanceof Error ? e.message : 'Request failed.');
+      if (e instanceof ApiError && e.denied) {
+        clearPrivateState(); setGuilds([]); setDisconnected(true);
+        if (e.status === 401) { setSession(null); setPassword(''); setApproved(false); }
+      } else if (!(e instanceof ApiError) || e.uncertain) setDisconnected(true);
       if (e instanceof ApiError && e.conflict) setConflict(true);
     } finally { lock.current = false; setBusy(false); }
   }
   async function load(c: GuildClient, id: string) {
-    const [nextTasks, nextMembers, nextDigest] = await Promise.all([c.tasks(id), c.members(id), c.rpc<Activity[]>('guild_digest', { p_guild: id })]);
+    // Inspect every result: a fast network failure must not mask a confirmed denial.
+    const results = await Promise.allSettled([c.tasks(id), c.members(id), c.rpc<Activity[]>('guild_digest', { p_guild: id })]);
+    const denial = results.find(r => r.status === 'rejected' && r.reason instanceof ApiError && r.reason.denied);
+    if (denial?.status === 'rejected') throw denial.reason;
+    const membership = results[1];
+    if (membership.status === 'fulfilled' && !membership.value.some(m => m.user_id === session?.user.id)) {
+      throw new ApiError('Guild membership is no longer available. Private data cleared.', 403);
+    }
+    const [nextTasks, nextMembers, nextDigest] = results.map(r => {
+      if (r.status === 'rejected') throw r.reason;
+      return r.value;
+    }) as [Task[], Member[], Activity[]];
     setTasks(nextTasks); setMembers(nextMembers); setDigest(nextDigest); setConflict(false);
   }
   async function refresh(c = client(), id = guild) {
     const list = await c.guilds(); setGuilds(list);
+    if (id && !list.some(g => g.id === id)) {
+      clearPrivateState(); setDisconnected(false);
+      setNotice('Guild membership is no longer available. Private data cleared.');
+      return;
+    }
     if (id) await load(c, id);
+    setDisconnected(false);
     setNotice('Loaded from server. No background sync.');
   }
   async function authenticate() {
@@ -88,6 +115,7 @@ export function GuildWorkspace({ draft }: GuildWorkspaceProps = {}) {
       <label className="guild-check"><input type="checkbox" checked={approved} onChange={e => setApproved(e.target.checked)} />I trust both endpoints and consent to sending credentials and shared data there.</label></fieldset>
     </details>
     {error && <div role="alert">{error} {pending ? 'The task outcome is unknown. Retry the exact request below; do not recreate it.' : 'Displayed data may be stale. Refresh to check the server before repeating a non-task action.'}</div>}
+    {session && disconnected && <p role="status">Disconnected / read-only: authorization could not be verified. Refresh successfully before making changes.</p>}
     {notice && <p role="status">{notice}</p>}
     {busy && <p role="status">Contacting guild server…</p>}
     {!session ? <form onSubmit={e => { e.preventDefault(); void run(authenticate); }}><fieldset disabled={busy}>
@@ -97,19 +125,19 @@ export function GuildWorkspace({ draft }: GuildWorkspaceProps = {}) {
       <label className="guild-check"><input type="checkbox" checked={signup} onChange={e => setSignup(e.target.checked)} />Create a new account</label>
       <button disabled={!approved}>{signup ? 'Sign up' : 'Sign in'}</button>
     </fieldset></form> : <>
-      <div className="guild-toolbar"><span>Signed in as {session.user.email || email}</span><button disabled={busy} onClick={() => void run(logout)}>Sign out</button><button disabled={busy} onClick={() => void run(() => refresh())}>Refresh from server</button></div>
-      {pending && <div role="status"><p>One task request awaits confirmation. Its original payload and idempotency key are held in memory; keep this page open.</p><button disabled={busy} onClick={() => void run(() => mutate())}>Retry exact task request</button></div>}
-      {conflict && <div role="alert">Another member changed this task. Reload before editing again.<button disabled={busy} onClick={() => void run(() => refresh())}>Reload conflicting tasks</button></div>}
-      <fieldset disabled={busy || pending}><legend>Your guilds</legend><label>Selected guild<select value={guild} onChange={e => void run(() => select(e.target.value))}><option value="">Choose a guild</option>{guilds.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}</select></label>
+      <div className="guild-toolbar"><span>Signed in as {session.user.email || email}</span><button disabled={busy} onClick={() => void run(logout, true)}>Sign out</button><button disabled={busy} onClick={() => void run(() => refresh(), true)}>Refresh from server</button></div>
+      {pending && <div role="status"><p>One task request awaits confirmation. Its original payload and idempotency key are held in memory; keep this page open.</p><button disabled={busy || disconnected} onClick={() => void run(() => mutate())}>Retry exact task request</button></div>}
+      {conflict && <div role="alert">Another member changed this task. Reload before editing again.<button disabled={busy} onClick={() => void run(() => refresh(), true)}>Reload conflicting tasks</button></div>}
+      <fieldset disabled={busy || disconnected || pending}><legend>Your guilds</legend><label>Selected guild<select value={guild} onChange={e => void run(() => select(e.target.value))}><option value="">Choose a guild</option>{guilds.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}</select></label>
         <form onSubmit={e => { e.preventDefault(); void run(async () => { const id = await client().rpc<string>('create_guild', { p_name: name.trim() }); setName(''); await refresh(client(), ''); await select(id); }); }}><label>New guild name<input required maxLength={100} value={name} onChange={e => setName(e.target.value)} /></label><button disabled={!name.trim()}>Create guild</button></form>
         <form onSubmit={e => { e.preventDefault(); void run(async () => { const id = await client().rpc<string>('redeem_invite', { p_token: invite.trim(), p_accept: accept }); setInvite(''); setAccept(false); await refresh(client(), ''); await select(id); }); }}><label>Invitation token<input required value={invite} onChange={e => setInvite(e.target.value)} autoComplete="off" /></label><label className="guild-check"><input type="checkbox" checked={accept} onChange={e => setAccept(e.target.checked)} />I accept this invitation and choose to join this shared guild.</label><button disabled={!accept || !invite.trim()}>Accept invitation</button></form>
       </fieldset>
       {guild && <><h3>{guilds.find(g => g.id === guild)?.name || 'Selected guild'}</h3><p>Your role: {owner ? 'owner' : members.length ? 'member' : 'not loaded'}</p>
-        {owner && <div><button disabled={busy || pending} onClick={() => void run(async () => { setIssuedInvite(await client().rpc<string>('create_invite', { p_guild: guild, p_hours: 24 })); })}>Issue 24-hour invitation</button>{issuedInvite && <label>Single-use token — share privately<input readOnly value={issuedInvite} onFocus={e => e.target.select()} /></label>}</div>}
-        <form onSubmit={e => { e.preventDefault(); void run(async () => { await mutate(input('create', undefined, { p_title: title.trim() })); setTitle(''); }); }}><fieldset disabled={busy || pending || conflict}><legend>Create shared task</legend><label>Shared task title<input required maxLength={200} value={title} onChange={e => setTitle(e.target.value)} /></label><button disabled={!title.trim()}>Create shared task</button></fieldset></form>
-        {draft && <fieldset disabled={busy || pending || conflict}><legend>Publish personal draft explicitly</legend><p>{draft.title}</p><p>Only title, source identifier and checksum will be shared with this guild.</p><label className="guild-check"><input type="checkbox" checked={publish} onChange={e => setPublish(e.target.checked)} />Publish this draft to the selected guild</label><button disabled={!publish || !draft.title.trim() || draft.title.length > 200 || (draft.source?.length ?? 0) > 200 || (draft.checksum?.length ?? 0) > 128} onClick={() => void run(async () => { await mutate(input('create', undefined, { p_title: draft.title, p_source: draft.source ?? null, p_checksum: draft.checksum ?? null })); setPublish(false); })}>Publish draft</button></fieldset>}
-        <h4>Shared tasks</h4>{!tasks.length && <p>No shared tasks loaded.</p>}<ul className="guild-tasks">{tasks.map(task => <li key={`${task.id}:${task.revision}`}><TaskEditor task={task} editable={owner || task.assignee === session.user.id} disabled={busy || pending || conflict} onClaim={() => void run(() => mutate(input('claim', task)))} onSave={(nextTitle, status) => void run(() => mutate(input('update', task, { p_title: nextTitle, p_status: status })))} /></li>)}</ul>
-        <h4>Since last seen</h4><p>{digest.length ? `${digest.length} unread events` : 'No unread activity loaded.'}</p><ul>{digest.map(event => <li key={event.id}>{event.kind} · {new Date(event.created_at).toLocaleString()}</li>)}</ul><button disabled={busy || !digest.length} onClick={() => void run(async () => { const through = digest[digest.length - 1].id; await client().rpc('mark_seen', { p_guild: guild, p_through_id: through }); await load(client(), guild); setNotice('Displayed activity marked seen.'); })}>Mark displayed activity seen</button>
+        {owner && <div><button disabled={busy || disconnected || pending} onClick={() => void run(async () => { setIssuedInvite(await client().rpc<string>('create_invite', { p_guild: guild, p_hours: 24 })); })}>Issue 24-hour invitation</button>{issuedInvite && <label>Single-use token — share privately<input readOnly value={issuedInvite} onFocus={e => e.target.select()} /></label>}</div>}
+        <form onSubmit={e => { e.preventDefault(); void run(async () => { await mutate(input('create', undefined, { p_title: title.trim() })); setTitle(''); }); }}><fieldset disabled={busy || disconnected || pending || conflict}><legend>Create shared task</legend><label>Shared task title<input required maxLength={200} value={title} onChange={e => setTitle(e.target.value)} /></label><button disabled={!title.trim()}>Create shared task</button></fieldset></form>
+        {draft && <fieldset disabled={busy || disconnected || pending || conflict}><legend>Publish personal draft explicitly</legend><p>{draft.title}</p><p>Only title, source identifier and checksum will be shared with this guild.</p><label className="guild-check"><input type="checkbox" checked={publish} onChange={e => setPublish(e.target.checked)} />Publish this draft to the selected guild</label><button disabled={!publish || !draft.title.trim() || draft.title.length > 200 || (draft.source?.length ?? 0) > 200 || (draft.checksum?.length ?? 0) > 128} onClick={() => void run(async () => { await mutate(input('create', undefined, { p_title: draft.title, p_source: draft.source ?? null, p_checksum: draft.checksum ?? null })); setPublish(false); })}>Publish draft</button></fieldset>}
+        <h4>Shared tasks</h4>{!tasks.length && <p>No shared tasks loaded.</p>}<ul className="guild-tasks">{tasks.map(task => <li key={`${task.id}:${task.revision}`}><TaskEditor task={task} editable={owner || task.assignee === session.user.id} disabled={busy || disconnected || pending || conflict} onClaim={() => void run(() => mutate(input('claim', task)))} onSave={(nextTitle, status) => void run(() => mutate(input('update', task, { p_title: nextTitle, p_status: status })))} /></li>)}</ul>
+        <h4>Since last seen</h4><p>{digest.length ? `${digest.length} unread events` : 'No unread activity loaded.'}</p><ul>{digest.map(event => <li key={event.id}>{event.kind} · {new Date(event.created_at).toLocaleString()}</li>)}</ul><button disabled={busy || disconnected || !digest.length} onClick={() => void run(async () => { const through = digest[digest.length - 1].id; await client().rpc('mark_seen', { p_guild: guild, p_through_id: through }); await load(client(), guild); setNotice('Displayed activity marked seen.'); })}>Mark displayed activity seen</button>
       </>}
     </>}
   </section>;
