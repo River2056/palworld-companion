@@ -9,12 +9,7 @@ test('shell is honest, responsive, navigable, and stays on origin', async ({ pag
   await expect(page.getByRole('heading', { name: 'Today', exact: true })).toBeVisible();
   await expect(page.getByText(/No plans yet/)).toBeVisible();
   await expect(page.getByText(/No game connection/)).toBeVisible();
-  for (const name of ['Guild']) {
-    await expect(page.getByText(name, { exact: true })).toBeVisible();
-    await expect(page.getByRole('link', { name, exact: true })).toHaveCount(0);
-    await expect(page.getByRole('button', { name, exact: true })).toHaveCount(0);
-  }
-  for (const name of ['Breeding', 'Bases']) {
+  for (const name of ['Breeding', 'Bases', 'Guild']) {
     await page.getByRole('link', {name, exact:true}).click();
     await expect(page.getByRole('heading', {name, exact:true, level:1})).toBeVisible();
     await expect(page.getByRole('main').getByRole('heading', {level:2}).first()).toBeVisible();
@@ -25,7 +20,7 @@ test('shell is honest, responsive, navigable, and stays on origin', async ({ pag
   await expect(page.getByRole('heading', { name: 'Craft', exact: true })).toBeVisible();
   await expect(page.getByLabel('Search recipes')).toBeVisible();
   await page.getByRole('link', { name: 'Settings', exact: true }).click();
-  await expect(page.getByText(/No account, telemetry, or cloud sync/)).toBeVisible();
+  await expect(page.getByText(/Personal planning needs no account and sends no telemetry/)).toBeVisible();
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Settings', exact: true })).toBeVisible();
   await page.goBack();
