@@ -1,10 +1,22 @@
+export interface SharedStock { item_id: string; quantity: number; revision: number }
+export interface PendingInvite { id: string; expires_at: string; created_by: string }
+export interface StockInput { p_guild: string; p_item: string; p_quantity: number; p_revision: number; p_key: string }
+export class StockRetry {
+  pending: Readonly<StockInput> | null = null;
+  async send(client: GuildClient, input?: StockInput) {
+    if (this.pending && input) throw new Error('Resolve pending stock request first.');
+    if (!this.pending) { if (!input) throw new Error('No pending request.'); this.pending = Object.freeze({ ...input }); }
+    try { const result = await client.rpc<SharedStock>('set_shared_stock', this.pending); this.pending = null; return result; }
+    catch (error) { if (error instanceof ApiError && !error.uncertain) this.pending = null; throw error; }
+  }
+}
 export interface Endpoints { authUrl: string; restUrl: string }
 export interface Session { access_token: string; user: { id: string; email?: string } }
 export interface Guild { id: string; name: string }
 export interface Member { user_id: string; role: 'owner' | 'member' }
-export interface Task { id: string; title: string; status: 'open' | 'doing' | 'done'; assignee: string | null; revision: number }
-export interface Activity { id: number; kind: string; actor: string; task_id: string | null; created_at: string }
-export interface TaskInput { p_guild: string; p_action: 'create' | 'claim' | 'update'; p_task: string | null; p_revision: number | null; p_title: string | null; p_status: Task['status'] | null; p_source: string | null; p_checksum: string | null; p_key: string }
+export interface Task { id: string; title: string; status: 'open' | 'doing' | 'done' | 'blocked' | 'cancelled'; assignee: string | null; revision: number; task_type?: string; description?: string; requested_quantity?: number; delivered_quantity?: number; source_id?: string | null; snapshot_checksum?: string | null; source_requirement_id?: string | null }
+export interface Activity { id: number; kind: string; actor: string; task_id: string | null; created_at: string; details?: { summary?: string; before?: unknown; after?: unknown } }
+export interface TaskInput { p_guild: string; p_action: 'create' | 'claim' | 'update'; p_task: string | null; p_revision: number | null; p_title: string | null; p_status: Task['status'] | null; p_source: string | null; p_checksum: string | null; p_key: string; p_type?: string; p_description?: string; p_requested?: number; p_delivered?: number; p_source_requirement?: string | null; p_reconfirm?: boolean }
 export const localEndpoints: Endpoints = { authUrl: 'http://127.0.0.1:55431', restUrl: 'http://127.0.0.1:55432' };
 export function validateEndpoint(value: string): string {
   const url = new URL(value);
@@ -21,7 +33,7 @@ export class ApiError extends Error {
 }
 export class GuildClient {
   readonly endpoints: Endpoints;
-  constructor(endpoints: Endpoints, private token = '', private transport: typeof fetch = fetch) {
+  constructor(endpoints: Endpoints, private token = '', private transport: typeof fetch = fetch.bind(globalThis)) {
     this.endpoints = { authUrl: validateEndpoint(endpoints.authUrl), restUrl: validateEndpoint(endpoints.restUrl) };
   }
   private async request<T>(base: string, path: string, body?: unknown): Promise<T> {
@@ -46,7 +58,8 @@ export class GuildClient {
   rpc<T>(name: string, body: unknown) { return this.request<T>(this.endpoints.restUrl, `rpc/${name}`, body); }
   guilds() { return this.request<Guild[]>(this.endpoints.restUrl, 'guilds?select=id,name&order=created_at.asc'); }
   members(id: string) { return this.request<Member[]>(this.endpoints.restUrl, `guild_members?select=user_id,role&guild_id=eq.${encodeURIComponent(id)}`); }
-  tasks(id: string) { return this.request<Task[]>(this.endpoints.restUrl, `guild_tasks?select=id,title,status,assignee,revision&guild_id=eq.${encodeURIComponent(id)}&order=updated_at.desc`); }
+  tasks(id: string) { return this.request<Task[]>(this.endpoints.restUrl, `guild_tasks?select=*&guild_id=eq.${encodeURIComponent(id)}&order=updated_at.desc`); }
+  stock(id: string) { return this.request<SharedStock[]>(this.endpoints.restUrl, `guild_shared_stock?select=*&guild_id=eq.${encodeURIComponent(id)}&order=item_id.asc`); }
   mutate(input: TaskInput) { return this.rpc<Task>('mutate_task', input); }
 }
 /** Hold exactly one immutable task request until success or definitive rejection. */

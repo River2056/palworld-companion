@@ -22,7 +22,8 @@ describe('GuildWorkspace', () => {
       if (url.includes('/token?')) return reply({ access_token: 'jwt', user: { id: 'u', email: 'person@example.test' } });
       if (url.includes('/rpc/create_guild')) { created = true; return reply('g'); }
       if (url.includes('/guilds?')) return reply(created ? [{ id: 'g', name: 'Builders' }] : []);
-      if (url.includes('/guild_members?')) return reply([{ user_id: 'u', role: 'owner' }]);
+      if (url.includes('/guild_shared_stock?') || url.includes('/rpc/list_pending_invites')) return reply([]);
+    if (url.includes('/guild_members?')) return reply([{ user_id: 'u', role: 'owner' }]);
       if (url.includes('/guild_tasks?')) return reply([]);
       if (url.includes('/rpc/guild_digest')) return reply(seen ? [] : [{ id: 7, kind: 'guild_created', actor: 'u', task_id: null, created_at: '2026-09-06T00:00:00Z' }]);
       if (url.includes('/rpc/mark_seen')) { expect(JSON.parse(options?.body as string)).toEqual({ p_guild: 'g', p_through_id: 7 }); seen = true; return reply(null); }

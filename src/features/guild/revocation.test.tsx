@@ -13,6 +13,9 @@ async function fixture() {
       if (mode === 'expired') return new Response('', { status: 401 });
       return reply(mode === 'removed' ? [] : [{ id: 'g', name: 'Private guild' }]);
     }
+    if (url.includes('/guild_shared_stock?')) return reply([{ item_id: 'private-stock', quantity: 4, revision: 1 }]);
+    if (url.includes('/rpc/list_pending_invites')) return reply([{ id: 'private-invite', expires_at: '2026-09-07T00:00:00Z', created_by: 'u' }]);
+    if (url.includes('/rpc/set_shared_stock')) throw new TypeError('offline');
     if (url.includes('/guild_members?')) return reply(mode === 'empty' ? [] : [{ user_id: 'u', role: 'owner' }]);
     if (url.includes('/guild_tasks?')) {
       if (mode === 'denied' || mode === 'empty') throw new TypeError('offline');
@@ -46,6 +49,8 @@ it.each(['removed', 'denied', 'empty', 'expired'])('purges private data and owne
   fireEvent.click(screen.getByRole('button', { name: 'Refresh from server' }));
   await waitFor(() => expect(screen.queryByText('Private task')).not.toBeInTheDocument());
   expect(screen.queryByText(/private_event/)).not.toBeInTheDocument();
+  expect(screen.queryByText(/private-stock/)).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Revoke invitation private-invite' })).not.toBeInTheDocument();
   expect(screen.queryByDisplayValue('secret-invite')).not.toBeInTheDocument();
   expect(screen.queryByRole('button', { name: 'Issue 24-hour invitation' })).not.toBeInTheDocument();
   expect(screen.queryByLabelText('Publish this draft to the selected guild')).not.toBeInTheDocument();
@@ -62,6 +67,19 @@ it.each(['removed', 'denied', 'empty', 'expired'])('purges private data and owne
   }
 });
 
+it('purges uncertain stock retry after membership revocation', async () => {
+  const f = await fixture();
+  fireEvent.change(screen.getByLabelText('Shared item reference'), { target: { value: 'private-stock' } });
+  fireEvent.change(screen.getByLabelText('Shared stock quantity'), { target: { value: '7' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Save shared stock' }));
+  await screen.findByText(/Disconnected \/ read-only/);
+  expect(screen.getByRole('button', { name: 'Retry exact stock request' })).toBeDisabled();
+  f.setMode('removed');
+  fireEvent.click(screen.getByRole('button', { name: 'Refresh from server' }));
+  await waitFor(() => expect(screen.queryByRole('button', { name: 'Retry exact stock request' })).not.toBeInTheDocument());
+  expect(screen.queryByText(/private-stock/)).not.toBeInTheDocument();
+});
+
 it('retains uncertain data read-only, blocks every write, and recovers only after refresh', async () => {
   const f = await fixture();
   f.setMode('offline');
@@ -69,7 +87,7 @@ it('retains uncertain data read-only, blocks every write, and recovers only afte
   await screen.findByText(/Disconnected \/ read-only/);
   expect(screen.getByText('Private task')).toBeInTheDocument();
   expect(screen.getByDisplayValue('secret-invite')).toBeInTheDocument();
-  for (const name of ['Create guild', 'Accept invitation', 'Issue 24-hour invitation', 'Create shared task', 'Publish draft', 'Claim task', 'Save task', 'Mark displayed activity seen']) {
+  for (const name of ['Create guild', 'Accept invitation', 'Issue 24-hour invitation', 'Create shared task', 'Publish draft', 'Claim task', 'Save task', 'Mark displayed activity seen', 'Save shared stock', 'Save guild name', 'Revoke invitation private-invite']) {
     expect(screen.getByRole('button', { name })).toBeDisabled();
   }
   const calls = f.fetcher.mock.calls.length;
