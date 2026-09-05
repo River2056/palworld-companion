@@ -45,9 +45,20 @@ export function planWorkspace(resolveSnapshot: SnapshotResolver, queue: readonly
   if (queue.length > 10_000) throw new Error('Goal queue limit exceeded');
   if (stock === null || typeof stock !== 'object' || Array.isArray(stock)) throw new Error('Invalid stock');
   for (const n of Object.values(stock)) if (!validInteger(n)) throw new Error('Stock counts must be safe nonnegative integers');
-  let state: State = { ledger: new Map(Object.entries(stock)), directLedger: new Map(Object.entries(stock)), surplus: new Map(), directSurplus: new Map(), direct: new Map(), raw: new Map(), allocations: new Map(), goals: [], steps: [] };
+  const state: State = { ledger: new Map(Object.entries(stock)), directLedger: new Map(Object.entries(stock)), surplus: new Map(), directSurplus: new Map(), direct: new Map(), raw: new Map(), allocations: new Map(), goals: [], steps: [] };
   const goalResults: GoalResult[] = [], diagnostics: PlanDiagnostic[] = [];
+  // Internal index preserves contribution insertion order without scanning prior goals.
+  const contributions = new WeakMap<Row, Map<string, Row['contributions'][number]>>();
   for (const goal of queue) {
+    // State is private to this synchronous invocation. Journal only this goal's writes;
+    // reverse replay restores repeated writes and absent map keys exactly on failure.
+    const undo: (() => void)[] = [];
+    const stepsBefore = state.steps.length, goalsBefore = state.goals.length;
+    const set = <T>(map: Map<string, T>, key: string, value: T) => {
+      const existed = map.has(key), previous = map.get(key);
+      undo.push(() => { if (existed) map.set(key, previous!); else map.delete(key); });
+      map.set(key, value);
+    };
     let path = [goal.item];
     const fail = (code: DiagnosticCode, itemId = path[path.length - 1], recipeId?: string): never => {
       throw new Unresolved({ goalId: goal.id, code, itemId, ...(recipeId === undefined ? {} : { recipeId }), path: [...path] });
@@ -103,28 +114,40 @@ export function planWorkspace(resolveSnapshot: SnapshotResolver, queue: readonly
       validate(goal.item, [], true); path = [goal.item];
       const root = select(goal.item, true);
       if (root.status !== 'resolved') { fail('recipe-missing'); continue; }
-      // No mutable map/row/contribution/step escapes this transaction until success.
-      const staged: State = structuredClone(state);
+      // No mutable map/row/contribution/step escapes the invocation. All writes below
+      // are journaled except append-only steps/goals, rolled back by their saved lengths.
       const record = (rows: Map<string, Row>, item: string, count: number, reserved: number, planned: number) => {
         const row = rows.get(item) ?? { item, required: 0, have: Object.hasOwn(stock, item) ? stock[item] : 0, reserved: 0, planned: 0, missing: 0, contributions: [] };
         const delta = { required: count, reserved, planned, missing: integer(count - reserved - planned) };
-        const contribution = row.contributions.find(c => c.goalId === goal.id) ?? { goalId: goal.id, required: 0, reserved: 0, planned: 0, missing: 0 };
-        if (!row.contributions.includes(contribution)) row.contributions.push(contribution);
+        let index = contributions.get(row);
+        if (!index) { index = new Map(); contributions.set(row, index); }
+        const existing = index.get(goal.id);
+        const contribution = existing ?? { goalId: goal.id, required: 0, reserved: 0, planned: 0, missing: 0 };
+        // Constant-size shallow snapshots: never copy the accumulated contributions.
+        const before = { ...row }, contributionBefore = { ...contribution }, length = row.contributions.length;
+        const contributionIndex = index;
+        undo.push(() => {
+          Object.assign(row, before);
+          Object.assign(contribution, contributionBefore);
+          row.contributions.length = length;
+          if (!existing) contributionIndex.delete(goal.id);
+        });
+        if (!existing) { row.contributions.push(contribution); index.set(goal.id, contribution); }
         for (const field of ['required', 'reserved', 'planned', 'missing'] as const) { row[field] = add(row[field], delta[field]); contribution[field] = add(contribution[field], delta[field]); }
-        rows.set(item, row);
+        if (!rows.has(item)) set(rows, item, row);
       };
       const take = (ledger: Map<string, number>, item: string, count: number) => {
         const used = Math.min(ledger.get(item) ?? 0, count);
-        ledger.set(item, (ledger.get(item) ?? 0) - used); return used;
+        set(ledger, item, (ledger.get(item) ?? 0) - used); return used;
       };
       const allocate = (item: string, count: number, direct: boolean, rawLeaf = false) => {
-        const reserved = take(direct ? staged.directLedger : staged.ledger, item, count);
-        const planned = take(direct ? staged.directSurplus : staged.surplus, key(item), count - reserved);
-        record(direct ? staged.direct : staged.allocations, item, count, reserved, planned);
-        if (rawLeaf) record(staged.raw, item, count, reserved, planned);
+        const reserved = take(direct ? state.directLedger : state.ledger, item, count);
+        const planned = take(direct ? state.directSurplus : state.surplus, key(item), count - reserved);
+        record(direct ? state.direct : state.allocations, item, count, reserved, planned);
+        if (rawLeaf) record(state.raw, item, count, reserved, planned);
         return count - reserved - planned;
       };
-      const step = (item: string, recipeId: string, batches: number, output: number) => staged.steps.push({ goalId: goal.id, snapshotId, selectionKey, item, recipeId, batches, output });
+      const step = (item: string, recipeId: string, batches: number, output: number) => state.steps.push({ goalId: goal.id, snapshotId, selectionKey, item, recipeId, batches, output });
       function requireItem(item: string, count: number, ancestors: string[]) {
         visit([...ancestors, item]);
         const r = select(item);
@@ -133,12 +156,12 @@ export function planWorkspace(resolveSnapshot: SnapshotResolver, queue: readonly
         const batches = batchesFor(missing, r.recipe.output_count), output = mul(batches, r.recipe.output_count);
         for (const input of r.recipe.inputs) { path = [...ancestors, item, input.item]; requireItem(input.item, mul(input.count, batches), [...ancestors, item]); }
         path = [...ancestors, item];
-        staged.surplus.set(key(item), add(staged.surplus.get(key(item)) ?? 0, output - missing));
+        set(state.surplus, key(item), add(state.surplus.get(key(item)) ?? 0, output - missing));
         step(item, r.recipe.id, batches, output);
       }
-      const reused = take(staged.surplus, key(goal.item), remaining);
+      const reused = take(state.surplus, key(goal.item), remaining);
       const batches = batchesFor(remaining - reused, root.recipe.output_count), output = mul(batches, root.recipe.output_count);
-      const directReused = take(staged.directSurplus, key(goal.item), remaining);
+      const directReused = take(state.directSurplus, key(goal.item), remaining);
       const directBatches = batchesFor(remaining - directReused, root.recipe.output_count);
       const directOutput = mul(directBatches, root.recipe.output_count);
       for (const input of root.recipe.inputs) {
@@ -147,13 +170,14 @@ export function planWorkspace(resolveSnapshot: SnapshotResolver, queue: readonly
         if (batches) requireItem(input.item, mul(input.count, batches), [goal.item]);
       }
       path = [goal.item];
-      staged.directSurplus.set(key(goal.item), add(staged.directSurplus.get(key(goal.item)) ?? 0, directOutput - (remaining - directReused)));
-      staged.surplus.set(key(goal.item), add(staged.surplus.get(key(goal.item)) ?? 0, output - (remaining - reused)));
+      set(state.directSurplus, key(goal.item), add(state.directSurplus.get(key(goal.item)) ?? 0, directOutput - (remaining - directReused)));
+      set(state.surplus, key(goal.item), add(state.surplus.get(key(goal.item)) ?? 0, output - (remaining - reused)));
       if (batches) step(goal.item, root.recipe.id, batches, output);
-      staged.goals.push({ id: goal.id, snapshotId, recipeId: root.recipe.id, selectionKey, batches, output, surplus: output - (remaining - reused) });
-      state = staged;
+      state.goals.push({ id: goal.id, snapshotId, recipeId: root.recipe.id, selectionKey, batches, output, surplus: output - (remaining - reused) });
       goalResults.push({ id: goal.id, status: 'resolved' });
     } catch (error) {
+      for (let i = undo.length - 1; i >= 0; i--) undo[i]();
+      state.steps.length = stepsBefore; state.goals.length = goalsBefore;
       if (!(error instanceof Unresolved)) throw error;
       diagnostics.push(error.diagnostic);
       goalResults.push({ id: goal.id, status: 'unresolved', diagnostics: [error.diagnostic] });

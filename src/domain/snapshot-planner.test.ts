@@ -52,6 +52,70 @@ describe('snapshot-aware partial planner', () => {
     expect(p.raw).toEqual(only.raw); expect(p.direct).toEqual(only.direct); expect(p.steps).toEqual(only.steps);
     conservation(p);
   });
+  test.each(['overflow', 'budget'] as const)('late %s after committed history leaves every projection unchanged', async failure => {
+    const a = await fixture([
+      recipe('make-tool', 'tool', [['bar', 1]], 2),
+      recipe('make-bar', 'bar', [['ore', 1]], 3),
+      recipe('bad', 'bad', [['bar', 2], ['wood', Number.MAX_SAFE_INTEGER]]),
+    ], ['bad']);
+    const first = goal(a, 'first');
+    const last = goal(a, 'last', { quantity: 3 });
+    // Validation visits four nodes. Allocation crafts bar (and records its step)
+    // before visiting wood exceeds six; overflow instead fails on wood's product.
+    const bad = goal(a, 'bad', { item: 'bad', recipeId: 'bad', quantity: failure === 'overflow' ? 2 : 1 });
+    const stock = { bar: 1, ore: 4, wood: 3 };
+    const limits = failure === 'budget' ? { maxNodesPerGoal: 6 } : {};
+    const before = JSON.stringify({ a, first, last, bad, stock });
+    const only = planWorkspace(resolver(a), [first, last], stock, limits);
+    const p = planWorkspace(resolver(a), [first, bad, last], stock, limits);
+    expect(p.diagnostics.map(d => d.code)).toEqual([failure === 'overflow' ? 'unsafe-quantity' : 'node-limit']);
+    expect(p.goalResults.map(g => g.status)).toEqual(['resolved', 'unresolved', 'resolved']);
+    for (const projection of ['direct', 'raw', 'allocations', 'goals', 'steps'] as const) expect(p[projection]).toEqual(only[projection]);
+    expect(JSON.stringify({ a, first, last, bad, stock })).toBe(before);
+    conservation(p);
+  });
+  test.each(['overflow', 'budget'] as const)('late %s restores consumed prior surplus in both projections', async failure => {
+    const a = await fixture([
+      recipe('make-tool', 'tool', [['bar', 1], ['wood', failure === 'budget' ? 1 : 4_503_599_627_370_495]], 3),
+      recipe('make-bar', 'bar', [['ore', 1]], 3),
+    ]);
+    const first = goal(a, 'first');
+    const bad = goal(a, 'bad', { quantity: 9 });
+    const reuse = goal(a, 'reuse', { quantity: 2 });
+    const follow = goal(a, 'follow', { item: 'bar', recipeId: 'make-bar' });
+    const stock = { bar: 1, ore: 4, wood: 3 };
+    const limits = failure === 'budget' ? { maxNodesPerGoal: 6 } : {};
+    // Budget mode must reach the allocation visit, not overflow while multiplying wood.
+    const failing = failure === 'budget' ? { ...bad, quantity: 6 } : bad;
+    const only = planWorkspace(resolver(a), [first, reuse, follow], stock, limits);
+    const p = planWorkspace(resolver(a), [first, failing, reuse, follow], stock, limits);
+    expect(p.diagnostics.map(d => d.code)).toEqual([failure === 'overflow' ? 'unsafe-quantity' : 'node-limit']);
+    expect(p.goalResults.map(g => g.status)).toEqual(['resolved', 'unresolved', 'resolved', 'resolved']);
+    for (const projection of ['direct', 'raw', 'allocations', 'goals', 'steps'] as const) expect(p[projection]).toEqual(only[projection]);
+    expect(p.goals.find(g => g.id === 'reuse')?.batches).toBe(0);
+    conservation(p);
+  });
+  test('2,000 unique simple goals retain complete provenance within a generous runtime budget', async () => {
+    const a = await fixture([recipe('make-tool', 'tool', [['ore', 1]])]);
+    const sizes = process.env.SNAPSHOT_PLANNER_BENCH ? [100, 500, 1000, 2000] : [2000];
+    planWorkspace(resolver(a), Array.from({ length: 100 }, (_, i) => goal(a, `warm-${i}`)), {});
+    for (const size of sizes) {
+      const queue = Array.from({ length: size }, (_, i) => goal(a, `g${i}`));
+      const start = performance.now();
+      const p = planWorkspace(resolver(a), queue, {});
+      const elapsed = performance.now() - start;
+      if (process.env.SNAPSHOT_PLANNER_BENCH) console.log(JSON.stringify({ goals: size, milliseconds: elapsed }));
+      expect(p.complete).toBe(true);
+      expect(p.goalResults).toHaveLength(size);
+      expect(p.goals).toHaveLength(size);
+      expect(p.steps).toHaveLength(size);
+      expect(p.raw[0]).toMatchObject({ required: size, reserved: 0, planned: 0, missing: size });
+      expect(p.raw[0].contributions.map(c => c.goalId)).toEqual(queue.map(g => g.id));
+      conservation(p);
+      // Deliberately broad: catches the measured six-second regression, not micro-timing.
+      expect(elapsed).toBeLessThan(3000);
+    }
+  }, 30_000);
   test('same item across A/B uses bound recipes and one physical stock ledger', async () => {
     const a = await fixture();
     const b = await fixture([recipe('b-tool', 'tool', [['bar', 2]]), recipe('make-bar', 'bar', [['ore', 7]], 2)]);
