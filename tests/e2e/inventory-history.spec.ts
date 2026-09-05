@@ -1,0 +1,50 @@
+import { expect, test } from '@playwright/test';
+import { readFile } from 'node:fs/promises';
+
+// Approved browser seam: import/export and manual inventory / goal actions.
+test('legacy inventory gains a manual timestamp; history reopens without changing saved identity or stock', async ({page}) => {
+ const errors: string[] = [];
+ page.on('pageerror', error => errors.push(error.message));
+ const initial = {version:1,goals:[{id:'retained-goal',item:'arrow',quantity:11,completed:4,notes:'Keep original identity'}],stock:{wood:3,stone:4},recent:[],stockUpdatedAt:{stone:'2020-01-01T00:00:00.000Z'}};
+ await page.goto('/#/settings');
+ await page.getByRole('textbox',{name:'Backup JSON',exact:true}).fill(JSON.stringify(initial));
+ await page.getByRole('button',{name:'Preview import'}).click();
+ await page.getByRole('button',{name:'Confirm replace workspace'}).click();
+ await expect(page.getByRole('region',{name:'Import preview'})).toHaveCount(0);
+ await page.getByRole('link',{name:'Craft',exact:true}).click();
+ const wood = page.getByLabel('Wood stock',{exact:true});
+ const woodForm = wood.locator('..').locator('..');
+ await expect(woodForm).toContainText('Last updated: Unknown');
+ await expect(page.getByText(/Stale manual counts can misstate shortages/)).toBeVisible();
+ await wood.fill('8');
+ await page.getByRole('button',{name:'Save Wood stock',exact:true}).click();
+ // Wait for the committed timestamp, not the pre-existing idle status.
+ const timestamp = woodForm.locator('time');
+ await expect(timestamp).toHaveCount(1);
+ const savedTime = await timestamp.getAttribute('datetime');
+ expect(savedTime).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+ await page.getByRole('button',{name:'Complete Arrow',exact:true}).click();
+ const active = page.getByRole('region',{name:'Active craft goals'});
+ const history = page.getByRole('region',{name:'Completed goal history'});
+ await expect(history.getByRole('heading',{name:'Arrow · 11 / 11'})).toBeVisible();
+ await expect(active.getByRole('listitem')).toHaveCount(0);
+ await page.reload();
+ await expect(history.getByText('Keep original identity',{exact:true})).toBeVisible();
+ await expect(wood).toHaveValue('8');
+ await expect(timestamp).toHaveAttribute('datetime',savedTime!);
+ await history.getByRole('button',{name:'Reopen Arrow (progress only)',exact:true}).click();
+ await expect(active.getByRole('heading',{name:'Arrow · 0 / 11'})).toBeVisible();
+ await expect(history.getByRole('listitem')).toHaveCount(0);
+ await page.reload();
+ await expect(active.getByRole('paragraph').filter({hasText:'Keep original identity'})).toBeVisible();
+ await page.getByRole('link',{name:'Settings',exact:true}).click();
+ const downloaded = page.waitForEvent('download');
+ await page.getByRole('button',{name:'Export JSON backup'}).click();
+ const download = await downloaded;
+ const backup = JSON.parse(await readFile((await download.path())!,'utf8'));
+ expect(backup.goals).toEqual([{...initial.goals[0],completed:0}]);
+ expect(backup.stock).toEqual({wood:8,stone:4});
+ expect(backup.stockUpdatedAt).toEqual({stone:initial.stockUpdatedAt.stone,wood:savedTime});
+ expect(errors).toEqual([]);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});
