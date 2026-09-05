@@ -1,8 +1,10 @@
-import {catalog, validateBase, validateRoute, workTypes, type Pal, type Base, type SavedRoute} from './domain';
+import {binding,importBudget,verifyBackupSnapshots,type BoundRoute,type SnapshotBackup} from '../../data/personal-db';
+import {validateSnapshotShape} from '../../domain/catalog-snapshot';
+import {catalog, validateBase, validateRoute, workTypes, type Pal, type Base} from './domain';
 import {type PalSnapshot, type PalStore} from './storage';
 
 export const MAX_BACKUP_BYTES = 10 * 1024 * 1024;
-export interface PalBackup {schemaVersion:1; catalogVersion:string; exportedAt:string; snapshot:PalSnapshot}
+export interface PalBackup {schemaVersion:1|2; catalog?:SnapshotBackup; catalogVersion:string; exportedAt:string; snapshot:PalSnapshot}
 export interface PalBackupPreview {backup:PalBackup; warnings:string[]}
 const fail = (field:string):never => {throw new Error(`Invalid Pal backup: ${field}.`);};
 function object(v:unknown, field:string):Record<string,unknown> {if(!v || typeof v!=='object' || Array.isArray(v))return fail(field);return v as Record<string,unknown>;}
@@ -14,8 +16,11 @@ function unique(ids:string[],field:string) {if(new Set(ids).size!==ids.length)fa
 
 /** Shape validation deliberately does not reject records absent from today's catalog. */
 export function validatePalBackup(input:unknown):PalBackupPreview {
+ importBudget(input);
  const root=object(input,'envelope');
- if(root.schemaVersion!==1)fail('schemaVersion (expected 1)');
+ if(root.schemaVersion!==1&&root.schemaVersion!==2)fail('schemaVersion');
+ let catalogData:SnapshotBackup|undefined;
+ if(root.schemaVersion===2){const c=object(root.catalog,'catalog');const snapshots=list(c.snapshots,'snapshots');if(snapshots.length>100)fail('snapshot count');for(const value of snapshots){const {id,...payload}=object(value,'snapshot');binding({state:'bound',snapshotId:id});validateSnapshotShape(payload);}catalogData=c as unknown as SnapshotBackup;}
  const catalogVersion=text(root.catalogVersion,'catalogVersion',200);
  const exportedAt=text(root.exportedAt,'exportedAt',40);
  if(!/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/.test(exportedAt)||!Number.isFinite(Date.parse(exportedAt))||new Date(exportedAt).toISOString()!==exportedAt)fail('exportedAt');
@@ -42,9 +47,9 @@ export function validatePalBackup(input:unknown):PalBackupPreview {
  });
  unique(bases.map(b=>b.id),'base IDs');
  for(const b of bases)validateBase(b,bases,pals);
- const routes:SavedRoute[]=list(snapshot.routes,'routes',1000).map(value=>{
+ const routes:BoundRoute[]=list(snapshot.routes,'routes',1000).map(value=>{
   const r=object(value,'route');const targetId=text(r.targetId,'targetId');species(targetId);
-  const route:SavedRoute={id:text(r.id,'route id',100000),targetId,conditional:bool(r.conditional,'route conditional'),sourceVersion:text(r.sourceVersion,'sourceVersion',200),completed:list(r.completed,'completed',6).map(v=>text(v,'completed step',100000)),steps:list(r.steps,'steps',6).map(value=>{
+  const route:BoundRoute={id:text(r.id,'route id',100000),targetId,conditional:bool(r.conditional,'route conditional'),sourceVersion:text(r.sourceVersion,'sourceVersion',200),completed:list(r.completed,'completed',6).map(v=>text(v,'completed step',100000)),steps:list(r.steps,'steps',6).map(value=>{
    const s=object(value,'step');const pairId=text(s.pairId,'pairId');const childId=text(s.childId,'childId');species(childId);
    const pair=catalog.breedingPairs.find(p=>p.id===pairId);
    if(!pair||pair.childId!==childId)warnings.add(`Unresolved or changed pair retained: ${pairId}`);
@@ -53,23 +58,28 @@ export function validatePalBackup(input:unknown):PalBackupPreview {
    for(const ref of parents)if(ref.startsWith('owned:')&&!pals.some(p=>p.id===ref.slice(6)))warnings.add(`Missing original owned-parent link retained: ${ref}`);
    return {id:text(s.id,'step id',100000),pairId,childId,parents:parents as [string,string],conditional:bool(s.conditional,'step conditional')};
   })};
-  validateRoute(route);return route;
+  route.catalogBinding=binding(root.schemaVersion===2?r.catalogBinding:undefined,route.sourceVersion);validateRoute(route);return route;
  });
  unique(routes.map(r=>r.id),'route IDs');
- return {backup:{schemaVersion:1,catalogVersion,exportedAt,snapshot:{pals,bases,routes}},warnings:[...warnings]};
+ return {backup:{schemaVersion:root.schemaVersion as 1|2,...(catalogData?{catalog:catalogData}:{}),catalogVersion,exportedAt,snapshot:{pals,bases,routes}},warnings:[...warnings]};
 }
 export function parsePalBackup(json:string):PalBackupPreview {
  if(new TextEncoder().encode(json).length>MAX_BACKUP_BYTES)fail('file exceeds 10 MiB');
  return validatePalBackup(JSON.parse(json) as unknown);
 }
 export function createPalBackup(snapshot:PalSnapshot,now=new Date()):PalBackup {
- return validatePalBackup({schemaVersion:1,catalogVersion:catalog.catalogId,exportedAt:now.toISOString(),snapshot}).backup;
+ const backup=validatePalBackup({schemaVersion:2,catalog:snapshot.catalog??{snapshots:[]},catalogVersion:catalog.catalogId,exportedAt:now.toISOString(),snapshot}).backup;
+ if(new TextEncoder().encode(JSON.stringify(backup,null,2)).length>MAX_BACKUP_BYTES)fail('file exceeds 10 MiB');
+ return backup;
 }
 /** Revalidate immediately before a single atomic transaction. No crafting/guild tables. */
 export async function replacePalBackup(store:PalStore,input:unknown):Promise<void> {
- const {snapshot}=validatePalBackup(input).backup;
+ const backup=validatePalBackup(input).backup;const {snapshot}=backup;
+ const snapshots=await verifyBackupSnapshots(backup.catalog?.snapshots);
+ // Missing referenced snapshots remain unresolved; never substitute the selected catalog.
  const {db}=store;
- await db.transaction('rw',db.pals,db.bases,db.routes,async()=>{
+ await db.write(async()=>{
+  for(const s of snapshots)await db.putSnapshot(s);
   await db.pals.clear();await db.bases.clear();await db.routes.clear();
   await db.pals.bulkPut(snapshot.pals);await db.bases.bulkPut(snapshot.bases);await db.routes.bulkPut(snapshot.routes);
  });

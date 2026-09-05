@@ -31,7 +31,9 @@ it('preserves stale catalog IDs and keeps manual completion separate from roster
   const saved={...route,sourceVersion:'historical-removed-catalog',completed:route.steps.map(s=>s.id)};
   await store.saveRoute(saved);
   const snapshot=await store.snapshot();
-  expect(snapshot.routes[0]).toEqual(saved);
+  // saveRoute creates a new plan under the selected rules; a label is not historical provenance.
+  // Legacy backup adoption is tested separately and stays explicitly legacy-unbound.
+  expect(snapshot.routes[0]).toEqual({...saved,catalogBinding:{state:'bound',snapshotId:(await store.db.personalMetadata()).selectedCatalog}});
   expect(snapshot.pals).toHaveLength(2);
   expect(routeWarnings(snapshot.routes[0],snapshot.pals).join(' ')).toContain('does not verify gender');
   const oldPair={...saved,steps:saved.steps.map(s=>({...s,pairId:'old-'+s.pairId}))};
