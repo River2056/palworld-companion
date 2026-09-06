@@ -4,17 +4,22 @@ import {execFileSync} from 'node:child_process';
 import {randomBytes, createHmac, createHash} from 'node:crypto';
 import {mkdirSync, writeFileSync, readFileSync, existsSync, readdirSync, rmSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
+import {ensurePodman} from './podman-preflight.mjs';
+async function main() {
 const prefix=process.env.GUILD_LOCAL_PREFIX ?? 'pw-guild-local';
 if (!/^[a-z][a-z0-9-]{0,62}$/.test(prefix)) throw Error('Invalid GUILD_LOCAL_PREFIX');
 const dir=new URL(prefix==='pw-guild-local' ? './.local/' : `./.local/${prefix}/`,import.meta.url);
 const action=process.argv[2] ?? 'start';
-if (!['start','resume','stop','destroy'].includes(action)) throw Error('Usage: node scripts/guild/local.mjs [start|resume|stop|destroy --confirm-destroy]');
+const flags=process.argv.slice(3);
+if (!['start','resume','stop','destroy','setup-podman'].includes(action) || flags.some(flag=>!(action==='setup-podman'?['--yes']:action==='destroy'?['--confirm-destroy']:[]).includes(flag))) throw Error('Usage: node scripts/guild/local.mjs [start|resume|stop|destroy --confirm-destroy|setup-podman [--yes]]');
+if(action==='destroy' && !flags.includes('--confirm-destroy')) throw Error('Destructive operation requires --confirm-destroy; stop preserves data.');
+await ensurePodman({setup:action==='setup-podman',yes:flags.includes('--yes')});
+if(action==='setup-podman')return;
 const run=(...args)=>execFileSync('podman',args,{encoding:'utf8',stdio:['pipe','pipe','pipe']});
 const exists=(type,name)=>run(type,'exists',name); // Only status 1 means absent; connection errors must propagate.
 function present(type,name) {try {exists(type,name);return true;} catch(e) {if(e.status===1)return false;throw e;}}
 const names=['rest','auth','db'];
 if(action==='stop' || action==='destroy') {
- if(action==='destroy' && process.argv[3]!=='--confirm-destroy') throw Error('Destructive operation requires --confirm-destroy; stop preserves data.');
  for(const name of names) if(present('container',`${prefix}-${name}`)) run(action==='stop'?'stop':'rm',...(action==='destroy'?['-f']:[]),`${prefix}-${name}`);
  if(action==='destroy') {
   if(present('volume',`${prefix}-data`)) run('volume','rm',`${prefix}-data`);
@@ -93,3 +98,5 @@ try {
  writeFileSync(new URL('config.json',dir),JSON.stringify({authUrl,restUrl,anonKey:jwt('anon')}),{mode:0o600});
  console.log(`READY ${prefix}: ${applied.size} migrations; only 127.0.0.1 bindings. Config: ${fileURLToPath(new URL('config.json',dir))}`);
 } catch(e) {console.error('Local setup failed:',e.message?.replaceAll(password,'[redacted]').replaceAll(secret,'[redacted]'));console.error(`Data retained. Retry start with the same GUILD_LOCAL_PREFIX (${prefix}); stop is non-destructive.`);process.exitCode=1;}
+}
+main().catch(e=>{console.error('Local command failed:',e.message);process.exitCode=1;});

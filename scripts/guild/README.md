@@ -1,6 +1,32 @@
 # Local guild stack
 
-Prerequisites: Node.js, a running Podman machine, and the repository dependencies for linting. Services bind only to `127.0.0.1`; PostgreSQL has no host port.
+Prerequisites: Node.js, a ready Podman engine, and the repository dependencies for linting. Services bind only to `127.0.0.1`; PostgreSQL has no host port.
+
+## Opt-in Podman setup (macOS)
+
+```sh
+node scripts/guild/local.mjs setup-podman        # asks before install, VM init, and VM start
+node scripts/guild/local.mjs setup-podman --yes  # explicit consent for unattended setup
+node scripts/guild/local.mjs start              # separate: starts the guild services
+```
+
+`setup-podman` first checks the CLI and `podman info`. An already-ready engine is a **read-only no-op**, with no prompt, installation, machine changes, or guild startup. Ordinary `start`/`resume`/`stop`/`destroy` perform read-only preflight and fail with setup guidance when unavailable; they never install or activate Podman implicitly. `--yes` is accepted only for `setup-podman`, and never authorizes guild data deletion.
+
+On macOS, if the binary is missing from PATH, setup offers `brew install podman` using **already-installed Homebrew**. The [official installation guide](https://podman.io/docs/installation) supports this command but recommends its native installer instead and does not recommend community-maintained Homebrew packaging. You can install the native package yourself and rerun setup. This script never installs Homebrew, runs sudo, installs a privileged helper, or upgrades an existing Podman installation. A broken CLI or failed engine connection is not treated as a missing installation. Newly installed Podman must be available on the current PATH.
+
+With no machines **and no existing connections**, setup asks to initialize `podman-machine-default` (downloads a Linux VM and adds connections), then asks to start it. Otherwise it reuses only the stopped local machine matching the existing default connection, including rootful `-root` connections. It refuses ambiguous/remote defaults, overridden `CONTAINER_HOST`/`CONTAINER_CONNECTION`, another active machine, or a running machine whose engine is unreachable. Resolve those manually using `podman info`, `podman machine list`, and `podman system connection list`; setup never stops, removes, resets, or silently switches machines/connections. Run setup serially with other Podman configuration operations.
+
+Activation uses the documented [`machine init`](https://docs.podman.io/en/latest/markdown/podman-machine-init.1.html) and [`machine start`](https://docs.podman.io/en/latest/markdown/podman-machine-start.1.html) commands. It feature-detects `--update-connection=false`; older Podman versions (including 5.5.0) get non-interactive stdin instead. Existing connection settings are checked after activation, and final `podman info` must succeed. Failures retain any completed installation/initialization for retry; no rollback or destructive repair is attempted. Read-only commands time out after 30 seconds, installation/VM commands after 20 minutes.
+
+Without `--yes`, mutations require both stdin and stdout to be TTYs and an affirmative answer (default is no). On Linux/Windows, an already-ready engine works, but installation/activation is manual via the official guide.
+
+Deterministic setup/preflight tests (injected commands, platform and prompts; no real installation or VM mutation):
+
+```sh
+node --test scripts/guild/podman-preflight.test.mjs
+```
+
+## Guild lifecycle
 
 ```sh
 node scripts/guild/local.mjs start
