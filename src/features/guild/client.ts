@@ -17,7 +17,10 @@ export interface Member { user_id: string; role: 'owner' | 'member' }
 export interface Task { id: string; title: string; status: 'open' | 'doing' | 'done' | 'blocked' | 'cancelled'; assignee: string | null; revision: number; task_type?: string; description?: string; requested_quantity?: number; delivered_quantity?: number; source_id?: string | null; snapshot_checksum?: string | null; source_requirement_id?: string | null }
 export interface Activity { id: number; kind: string; actor: string; task_id: string | null; created_at: string; details?: { summary?: string; before?: unknown; after?: unknown } }
 export interface TaskInput { p_guild: string; p_action: 'create' | 'claim' | 'update'; p_task: string | null; p_revision: number | null; p_title: string | null; p_status: Task['status'] | null; p_source: string | null; p_checksum: string | null; p_key: string; p_type?: string; p_description?: string; p_requested?: number; p_delivered?: number; p_source_requirement?: string | null; p_reconfirm?: boolean }
-export const localEndpoints: Endpoints = { authUrl: 'http://127.0.0.1:55431', restUrl: 'http://127.0.0.1:55432' };
+export const localEndpoints: Endpoints = {
+  authUrl: import.meta.env.VITE_GUILD_AUTH_URL?.trim() || 'http://127.0.0.1:55431',
+  restUrl: import.meta.env.VITE_GUILD_REST_URL?.trim() || 'http://127.0.0.1:55432',
+};
 export function validateEndpoint(value: string): string {
   const url = new URL(value);
   if (url.username || url.password || url.search || url.hash || (url.protocol !== 'https:' && !(url.protocol === 'http:' && ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)))) {

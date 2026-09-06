@@ -11,7 +11,17 @@ npm ci
 npm run dev
 ```
 
-Open the loopback URL printed by Vite (normally http://127.0.0.1:5173). No deployment is configured. No service worker or offline installation is provided: keep the local server running to load/reload the app.
+Open the loopback URL printed by Vite (normally http://127.0.0.1:5173). No service worker or offline installation is provided: keep the local server running to load/reload the app.
+
+### Run the complete stack over Tailscale
+
+Linux hosts with Podman, an authenticated system Tailscale daemon, and a predefined `svc:palworld-companion` Tailscale Service can launch the frontend and private Guild backend together:
+
+```sh
+npm run dev:tailnet
+```
+
+The launcher uses loopback frontend port `5174`, starts the Podman-backed Guild services, and verifies the named HTTPS route before reporting readiness. The Tailnet URL has the form `https://palworld-companion.<tailnet>.ts.net/`; it is available only to users and devices allowed by the tailnet, not the public internet. Auth and REST are proxied through `/auth` and `/rest` on the same HTTPS origin, while PostgreSQL has no host port. Keep the launcher in the foreground and press Ctrl+C to stop the application while preserving Guild data and the named Tailscale route. See [`scripts/guild/README.md`](scripts/guild/README.md) for prerequisites, overrides, lifecycle details, and intentional data deletion.
 
 ## Verify
 

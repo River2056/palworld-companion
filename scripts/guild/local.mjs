@@ -20,7 +20,16 @@ const exists=(type,name)=>run(type,'exists',name); // Only status 1 means absent
 function present(type,name) {try {exists(type,name);return true;} catch(e) {if(e.status===1)return false;throw e;}}
 const names=['rest','auth','db'];
 if(action==='stop' || action==='destroy') {
- for(const name of names) if(present('container',`${prefix}-${name}`)) run(action==='stop'?'stop':'rm',...(action==='destroy'?['-f']:[]),`${prefix}-${name}`);
+ for(const name of names) if(present('container',`${prefix}-${name}`)) {
+  const container=`${prefix}-${name}`;
+  try {run(action==='stop'?'stop':'rm',...(action==='destroy'?['-f']:[]),container);}
+  catch(error) {
+   // Podman 5.4 can report a rootless-netns cleanup error after the container
+   // has already stopped. Accept only that verified postcondition.
+   if(action!=='stop' || run('inspect','--format','{{.State.Running}}',container).trim()!=='false')throw error;
+   console.warn(`Podman reported an error after ${container} stopped; verified it is no longer running.`);
+  }
+ }
  if(action==='destroy') {
   if(present('volume',`${prefix}-data`)) run('volume','rm',`${prefix}-data`);
   if(present('network',prefix)) run('network','rm',prefix);

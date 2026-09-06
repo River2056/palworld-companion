@@ -2,6 +2,18 @@
 
 Prerequisites: Node.js, a ready Podman engine, and the repository dependencies for linting. Services bind only to `127.0.0.1`; PostgreSQL has no host port.
 
+## One-command app and Tailnet launcher
+
+On Linux with the system Tailscale daemon already authenticated, launch the frontend and private guild backend together:
+
+```sh
+npm run dev:tailnet
+```
+
+The launcher keeps Vite, GoTrue, and PostgREST on loopback, using frontend port `5174` so it can coexist with Trading Webapp on `5173`. It mounts Auth and REST behind the frontend's HTTPS origin and advertises the predefined `svc:palworld-companion` Tailscale Service without changing existing node or Service listeners. Override these defaults with `FRONTEND_PORT=<port>` or `TAILSCALE_SERVICE=svc:<name>` if needed. It prints and verifies the exact Tailnet URL before reporting readiness.
+
+The URL is available only to devices allowed onto the tailnet; it is not public Tailscale Funnel access. Keep the launcher in the foreground. Ctrl+C stops Vite and the guild containers while preserving the database, credentials, network, and persistent Serve route for the next launch.
+
 ## Opt-in Podman setup (macOS)
 
 ```sh
