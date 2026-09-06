@@ -1,6 +1,11 @@
 # Palworld Companion Implementation Plan
 
-> **For Hermes:** Use the subagent-driven-development skill when implementation is explicitly requested; implement this plan task-by-task. This request authorizes planning and saving notes only.
+## Implementation decision: reference catalog
+
+The user approved starting with a small, attributed reference catalog with patch compatibility explicitly unverified. This permits a working reference-data build, not a claim of current-version or complete game coverage. Source URLs/revisions, attribution and exclusions must be visible. Repository initialized at `/Users/tungchinchen/projects/palworld-companion` with repository-local Git identity `river2056 <chen0625tung@gmail.com>`. No remote configured.
+
+
+> **For Hermes:** Use the subagent-driven-development skill when implementation is explicitly requested; implement this plan task-by-task. The original request authorized planning only; the subsequent user request explicitly authorizes step-by-step implementation and local repository initialization.
 
 **Goal:** Build a second-screen Palworld companion that connects crafting checklists, breeding routes, base staffing, and guild tasks through a personal Today dashboard.
 
@@ -8,7 +13,7 @@
 
 **Tech stack (proposed, not yet installed or approved separately):** React + TypeScript + Vite; Fuse.js for fuzzy search; IndexedDB through Dexie for local persistence; Vitest for domain tests; Playwright for browser acceptance tests. Add Supabase Auth/Postgres with row-level security for guild collaboration in the final phase. Pin dependency versions during bootstrap rather than assuming latest versions here.
 
-**Status:** Product decisions captured; no application code, game dataset, or deployment has been created or verified. No existing application repository was supplied or inspected. All source paths below are proposed paths relative to a future repository root.
+**Status:** Implementation is in `/Users/tungchinchen/projects/palworld-companion`. The four modules and limited reference catalog are implemented; the approved local, limited-reference acceptance gates are complete. See `../implementation-status.md` and `../acceptance-matrix.md` for current evidence and outstanding gates. This plan preserves the original requirements and design decisions; it is not a deployment or current-patch compatibility claim.
 
 ---
 
