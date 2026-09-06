@@ -7,7 +7,7 @@ beforeEach(async()=>{window.location.hash='#/today';await workspaceStore.reset()
 test('shows complete selected craft catalog and game-version uncertainty', async () => { render(<App/>); expect(await screen.findByText(/Catalog: 913 craftable items · 1275 known recipes/)).toBeVisible(); });
 test('navigates all modules and leaves guild connection opt-in', async () => {
  const user=userEvent.setup(); render(<App/>); await user.click(screen.getByRole('link',{name:'Craft'}));
- expect(await screen.findByLabelText('Search recipes')).toBeVisible();
+ expect(await screen.findByLabelText('Search items and recipes')).toBeVisible();
  await user.click(screen.getByRole('link',{name:'Settings'})); expect(await screen.findByRole('heading',{name:'Pal, base and route backup'})).toBeVisible();
  await user.click(screen.getByRole('link',{name:'Guild'}));
  expect(await screen.findByRole('heading',{name:'Guild workspace'})).toBeVisible();
@@ -16,7 +16,7 @@ test('navigates all modules and leaves guild connection opt-in', async () => {
 test('empty Today explains manual browser workspace',async()=>{render(<App/>); expect(await screen.findByText(/No plans yet/)).toBeVisible(); expect(screen.getByText(/No game connection/)).toBeVisible();});
 test('fuzzy search, explicit selection, quantity, pin and progress-only completion',async()=>{
  const user=userEvent.setup(); window.location.hash='#/craft'; render(<App/>);
- await user.type(await screen.findByLabelText('Search recipes'),'arow'); await user.click(screen.getByRole('button',{name:'Select Arrow'}));
+ await user.type(await screen.findByLabelText('Search items and recipes'),'arow'); await user.click(screen.getByRole('button',{name:'Select Arrow'}));
  const qty=screen.getByLabelText('Desired finished units'); await user.clear(qty); await user.type(qty,'11');
  expect(screen.getByText(/2 batches · 20 output · 9 surplus/)).toBeVisible(); await user.click(screen.getByRole('button',{name:'Pin craft goal'}));
  expect(await screen.findByRole('heading',{name:'Arrow · 0 / 11'})).toBeVisible();

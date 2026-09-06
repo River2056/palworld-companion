@@ -9,7 +9,7 @@ test('recent pins are newest first and padded aliases still resolve', async () =
   const user = userEvent.setup();
   render(<Craft data={{...emptyWorkspace(), recent:['cloth','arrow']}} update={vi.fn()}/>);
   expect((await screen.findAllByRole('button',{name:/Select /})).slice(0,2).map(b=>b.textContent)).toEqual(['Cloth','Arrow']);
-  await user.type(screen.getByLabelText('Search recipes'),'  sphere  ');
+  await user.type(screen.getByLabelText('Search items and recipes'),'  sphere  ');
   await user.click(screen.getByRole('button',{name:'Select Pal Sphere'}));
   expect(screen.getByText(/Output per run:/)).toBeVisible();
 });
@@ -18,12 +18,22 @@ test('search and pin use the complete known-recipe catalog, not the curated samp
   const user = userEvent.setup();
   const update = vi.fn().mockResolvedValue(true);
   render(<Craft data={emptyWorkspace()} update={update}/>);
-  await user.type(await screen.findByLabelText('Search recipes'), 'mega sphere');
+  await user.type(await screen.findByLabelText('Search items and recipes'), 'mega sphere');
   await user.click(screen.getByRole('button', {name: 'Select Mega Sphere'}));
   await user.click(screen.getByRole('button', {name: 'Pin craft goal'}));
   expect(update).toHaveBeenCalledWith(expect.objectContaining({
     goals: [expect.objectContaining({item: 'mega-sphere', quantity: 1})],
   }));
+});
+
+test('searching a material shows how it can be obtained', async () => {
+  const user = userEvent.setup();
+  render(<Craft data={emptyWorkspace()} update={vi.fn()}/>);
+  await user.type(await screen.findByLabelText('Search items and recipes'), 'wood');
+  await user.click(screen.getByRole('button', {name: 'Select Wood'}));
+  expect(screen.getByRole('heading', {name: 'How to obtain Wood'})).toBeVisible();
+  expect(screen.getByText('Material for structures and items. Can be obtained by cutting trees.')).toBeVisible();
+  expect(screen.queryByRole('button', {name: 'Pin craft goal'})).not.toBeInTheDocument();
 });
 
 test('unresolved leaf recipe is disclosed; failed replacement retains preview and reset confirmation', async () => {

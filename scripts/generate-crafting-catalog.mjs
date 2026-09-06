@@ -99,7 +99,17 @@ const duplicateRecipeIds = recipes.map(recipe => recipe.id).filter((id, index, i
 if (duplicateRecipeIds.length) throw new Error(`Recipe ID collision: ${duplicateRecipeIds[0]}`);
 
 const referencedIds = new Set(recipes.flatMap(recipe => [recipe.outputItemId, ...recipe.inputs.map(input => input.item)]));
-const items = [...referencedIds].map(id => ({id, name: allNames.get(id) ?? id, kind: outputIds.has(id) ? 'craftable' : 'raw'}));
+const sourceById = new Map(Object.entries(source).map(([name, item]) => [slug(name), item]));
+const items = [...referencedIds].map(id => {
+  const kind = outputIds.has(id) ? 'craftable' : 'raw';
+  const description = sourceById.get(id)?.description;
+  return {
+    id,
+    name: allNames.get(id) ?? id,
+    kind,
+    ...(kind === 'raw' && typeof description === 'string' && description.trim() ? {acquisition: [description.trim()]} : {}),
+  };
+});
 const catalog = {
   schemaVersion: 1,
   source: {

@@ -24,12 +24,18 @@
     {
       "id": "wood",
       "name": "Wood",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Material for structures and items. Can be obtained by cutting trees."
+      ]
     },
     {
       "id": "stone",
       "name": "Stone",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Material for structures and items. Can be obtained by mining rocks."
+      ]
     },
     {
       "id": "poison-arrow",
@@ -39,7 +45,10 @@
     {
       "id": "venom-gland",
       "name": "Venom Gland",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Material obtainable from poisonous Pals. Can be used to make Poison Arrow and more."
+      ]
     },
     {
       "id": "fire-arrow",
@@ -49,7 +58,10 @@
     {
       "id": "flame-organ",
       "name": "Flame Organ",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Material obtainable from Fire Pals. Can be used to make Fire Arrow and more."
+      ]
     },
     {
       "id": "assault-rifle",
@@ -74,7 +86,10 @@
     {
       "id": "ancient-civilization-parts",
       "name": "Ancient Civilization Parts",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Debris excavated from ancient ruins. Contains abundant information on lost technology. Extremely valuable, people from all walks of life are now seeking such crystals."
+      ]
     },
     {
       "id": "stone-axe",
@@ -124,7 +139,10 @@
     {
       "id": "nightstar-sand",
       "name": "Nightstar Sand",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Sand that can be found in the desert at night.  Used as a material for crafting certain accessories and other items."
+      ]
     },
     {
       "id": "wooden-club",
@@ -149,7 +167,10 @@
     {
       "id": "electric-organ",
       "name": "Electric Organ",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Material obtainable from Electric Pals. It stores electricity, but requires caution when used."
+      ]
     },
     {
       "id": "crossbow",
@@ -174,7 +195,10 @@
     {
       "id": "wool",
       "name": "Wool",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Material sheared from sheep Pals. A necessity for creating bedding, Cloth and more."
+      ]
     },
     {
       "id": "high-quality-cloth",
@@ -184,7 +208,10 @@
     {
       "id": "leather",
       "name": "Leather",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Leather taken from a Pal, it serves as a defensive material. It can be obtained from certain Pals."
+      ]
     },
     {
       "id": "cloth-outfit",
@@ -209,7 +236,10 @@
     {
       "id": "ore",
       "name": "Ore",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Becomes an ingot when refined using a furnace. Can be found in caves and other places."
+      ]
     },
     {
       "id": "double-barreled-shotgun",
@@ -219,7 +249,10 @@
     {
       "id": "hardwood",
       "name": "Hardwood",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "High-quality wood carefully selected from sturdy trees grown in harsh environments such as deserts, volcanic regions, and snowy mountains."
+      ]
     },
     {
       "id": "rocket-ammo",
@@ -254,7 +287,10 @@
     {
       "id": "sulfur",
       "name": "Sulfur",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Sulfur that can be found in volcanoes and such. Necessary for making Gunpowder."
+      ]
     },
     {
       "id": "handgun",
@@ -264,7 +300,10 @@
     {
       "id": "high-quality-pal-oil",
       "name": "High Quality Pal Oil",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "High-quality oil that can be extracted from Pal. Necessary for making Polymer."
+      ]
     },
     {
       "id": "decal-gun-1",
@@ -299,12 +338,18 @@
     {
       "id": "red-berries",
       "name": "Red Berries",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "A versatile ingredient that is delicious raw or cooked. They can be found anywhere on the island."
+      ]
     },
     {
       "id": "horn",
       "name": "Horn",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Horn collected from Pals. Used to create medicines and more."
+      ]
     },
     {
       "id": "medical-supplies",
@@ -314,7 +359,10 @@
     {
       "id": "bone",
       "name": "Bone",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Bone collected from Pals. A valuable source of premium calcium."
+      ]
     },
     {
       "id": "high-grade-medical-supplies",
@@ -329,12 +377,18 @@
     {
       "id": "beautiful-flower",
       "name": "Beautiful Flower",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "A plant that blooms colorful flowers. Can be used to make Suspicious Juice and Strange Juice."
+      ]
     },
     {
       "id": "aquatic-pal-fluids",
       "name": "Aquatic Pal Fluids",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Bodily fluids taken from a Water Pal. Their high viscosity makes them a handy material."
+      ]
     },
     {
       "id": "strange-juice",
@@ -369,7 +423,10 @@
     {
       "id": "coal",
       "name": "Coal",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Coal often found in caves and other places. Required to create high quality metal."
+      ]
     },
     {
       "id": "energy-cartridge",
@@ -409,7 +466,10 @@
     {
       "id": "pure-quartz",
       "name": "Pure Quartz",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Pure Quartz often found in snowy fields and similar places. Required to create Circuit Board."
+      ]
     },
     {
       "id": "pal-sphere",
@@ -554,7 +614,10 @@
     {
       "id": "ice-organ",
       "name": "Ice Organ",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Material obtainable from Ice Pals. Can be used to make Ice Mine and more."
+      ]
     },
     {
       "id": "old-bow",
@@ -569,12 +632,18 @@
     {
       "id": "wheat",
       "name": "Wheat",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "An ingredient that forms the base of various dishes. Wheat is a common crop in many parts of the world."
+      ]
     },
     {
       "id": "crude-oil",
       "name": "Crude Oil",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "A material that can be processed into various products. Obtained by installing a Crude Oil Extractor in an oil field."
+      ]
     },
     {
       "id": "ai-core",
@@ -589,7 +658,10 @@
     {
       "id": "ancient-civilization-core",
       "name": "Ancient Civilization Core",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Core from technology that was lost long ago. Nearly impossible to find on the Palpagos Islands, it contains a wealth of forgotten knowledge."
+      ]
     },
     {
       "id": "cryogenic-coolant",
@@ -609,7 +681,10 @@
     {
       "id": "milk",
       "name": "Milk",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Drink it as is, or use it in various meals. Can be milked from Mozzarina."
+      ]
     },
     {
       "id": "jam-filled-bun",
@@ -624,12 +699,18 @@
     {
       "id": "lettuce",
       "name": "Lettuce",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "A leafy green. When it comes to salad, this is a must. It has an exquisitely crunchy texture and refreshing taste."
+      ]
     },
     {
       "id": "tomato",
       "name": "Tomato",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "A fresh ingredient that brightens any dish. Filled with lycopene, they’re also very healthy."
+      ]
     },
     {
       "id": "omelet",
@@ -639,7 +720,10 @@
     {
       "id": "egg",
       "name": "Egg",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Delicious when fried, but can also be used to cook various meals. Chikipi produce them."
+      ]
     },
     {
       "id": "pancake",
@@ -654,7 +738,10 @@
     {
       "id": "mushroom",
       "name": "Mushroom",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "A mushroom that can be eaten raw. They can be found anywhere on the island."
+      ]
     },
     {
       "id": "mushroom-soup",
@@ -679,7 +766,10 @@
     {
       "id": "honey",
       "name": "Honey",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Honey harvested from Beegarde. It's sweet and tasty."
+      ]
     },
     {
       "id": "fried-egg",
@@ -714,12 +804,18 @@
     {
       "id": "toxin-filtering-membrane",
       "name": "Toxin Filtering Membrane",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "An organ that protects Dandilord from the corrosive mist it emits. It filters and neutralizes the corrosive mist."
+      ]
     },
     {
       "id": "paloxite",
       "name": "Paloxite",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Energy leaking from the World Tree that has crystallized after many years.  Those without protection who touch it will instantly rust and decay. Only those who can master its delicacy can reach the pinnacle of ancient technology."
+      ]
     },
     {
       "id": "lifmunks-submachine-gun",
@@ -1124,7 +1220,10 @@
     {
       "id": "dark-fragment",
       "name": "Dark Fragment",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Dropped by some powerful Dark Pals.  Used as a material for crafting powerful accessories and other items."
+      ]
     },
     {
       "id": "grintale-saddle",
@@ -1219,7 +1318,10 @@
     {
       "id": "gumoss-leaf",
       "name": "Gumoss Leaf",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Leaf dropped from a Gumoss. Fresh and sticky, it is used to make clothing."
+      ]
     },
     {
       "id": "ring-of-ice-resistance",
@@ -1234,7 +1336,10 @@
     {
       "id": "meteorite-fragment",
       "name": "Meteorite Fragment",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Fragment of a rock from outer space. Contains large amounts of Paldium Fragment, which can be extracted by placing it in a Crusher."
+      ]
     },
     {
       "id": "ring-of-dark-resistance",
@@ -1389,7 +1494,10 @@
     {
       "id": "tocotoco-feather",
       "name": "Tocotoco Feather",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Feathers dropped from a Tocotoco. Used to make clothing, as the beautifully vivid colors are quite popular."
+      ]
     },
     {
       "id": "grinning-tocotoco-cap",
@@ -1409,7 +1517,10 @@
     {
       "id": "penking-plume",
       "name": "Penking Plume",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Plume dropped from a Penking. Bright and colorful, it is used to make clothing."
+      ]
     },
     {
       "id": "katress-cap",
@@ -1419,7 +1530,10 @@
     {
       "id": "katress-hair",
       "name": "Katress Hair",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Hair dropped from a Katress. Soft and supple, it is used to make clothing."
+      ]
     },
     {
       "id": "musket",
@@ -1434,7 +1548,10 @@
     {
       "id": "old-bow-schematic-1",
       "name": "Old Bow Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Old Bow (Uncommon). Can be crafted at Primitive Workbench."
+      ]
     },
     {
       "id": "old-bow-schematic-3",
@@ -1454,7 +1571,10 @@
     {
       "id": "crossbow-schematic-1",
       "name": "Crossbow Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Crossbow (Uncommon). Can be crafted at High-Quality Workbench."
+      ]
     },
     {
       "id": "crossbow-schematic-3",
@@ -1474,7 +1594,10 @@
     {
       "id": "assault-rifle-schematic-1",
       "name": "Assault Rifle Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Assault Rifle (Uncommon). Can be crafted at Weapon Assembly Line."
+      ]
     },
     {
       "id": "assault-rifle-schematic-3",
@@ -1494,7 +1617,10 @@
     {
       "id": "pump-action-shotgun-schematic-1",
       "name": "Pump-Action Shotgun Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Pump-Action Shotgun (Uncommon). Can be crafted at Weapon Assembly Line."
+      ]
     },
     {
       "id": "pump-action-shotgun-schematic-3",
@@ -1514,7 +1640,10 @@
     {
       "id": "handgun-schematic-1",
       "name": "Handgun Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Handgun (Uncommon). Can be crafted at Weapon Workbench."
+      ]
     },
     {
       "id": "handgun-schematic-3",
@@ -1534,7 +1663,10 @@
     {
       "id": "rocket-launcher-schematic-1",
       "name": "Rocket Launcher Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Rocket Launcher (Uncommon). Can be crafted at Weapon Assembly Line II."
+      ]
     },
     {
       "id": "rocket-launcher-schematic-3",
@@ -1554,7 +1686,10 @@
     {
       "id": "musket-schematic-1",
       "name": "Musket Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Musket (Uncommon). Can be crafted at Weapon Workbench."
+      ]
     },
     {
       "id": "musket-schematic-3",
@@ -1574,7 +1709,10 @@
     {
       "id": "double-barreled-shotgun-schematic-1",
       "name": "Double-Barreled Shotgun Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Double-Barreled Shotgun (Uncommon). Can be crafted at Weapon Assembly Line."
+      ]
     },
     {
       "id": "double-barreled-shotgun-schematic-3",
@@ -1594,7 +1732,10 @@
     {
       "id": "single-shot-rifle-schematic-1",
       "name": "Single-Shot Rifle Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Single-Shot Rifle (Uncommon). Can be crafted at Weapon Assembly Line."
+      ]
     },
     {
       "id": "single-shot-rifle-schematic-3",
@@ -1614,7 +1755,10 @@
     {
       "id": "feathered-hair-band-schematic-1",
       "name": "Feathered Hair Band Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Feathered Hair Band (Uncommon). Can be crafted at Primitive Workbench."
+      ]
     },
     {
       "id": "feathered-hair-band-schematic-3",
@@ -1634,7 +1778,10 @@
     {
       "id": "metal-helm-schematic-1",
       "name": "Metal Helm Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Metal Helm (Uncommon). Can be crafted at High-Quality Workbench."
+      ]
     },
     {
       "id": "metal-helm-schematic-3",
@@ -1654,7 +1801,10 @@
     {
       "id": "refined-metal-helm-schematic-1",
       "name": "Refined Metal Helm Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Refined Metal Helm (Uncommon). Can be crafted at Production Assembly Line."
+      ]
     },
     {
       "id": "refined-metal-helm-schematic-3",
@@ -1674,7 +1824,10 @@
     {
       "id": "pal-metal-helm-schematic-1",
       "name": "Pal Metal Helm Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Pal Metal Helm (Uncommon). Can be crafted at Production Assembly Line II."
+      ]
     },
     {
       "id": "pal-metal-helm-schematic-3",
@@ -1694,7 +1847,10 @@
     {
       "id": "cloth-outfit-schematic-1",
       "name": "Cloth Outfit Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Cloth Outfit (Uncommon). Can be crafted at Primitive Workbench."
+      ]
     },
     {
       "id": "cloth-outfit-schematic-3",
@@ -1714,7 +1870,10 @@
     {
       "id": "pelt-armor-schematic-1",
       "name": "Pelt Armor Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Pelt Armor (Uncommon). Can be crafted at High-Quality Workbench."
+      ]
     },
     {
       "id": "pelt-armor-schematic-3",
@@ -1734,7 +1893,10 @@
     {
       "id": "metal-armor-schematic-1",
       "name": "Metal Armor Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Metal Armor (Uncommon). Can be crafted at High-Quality Workbench."
+      ]
     },
     {
       "id": "metal-armor-schematic-3",
@@ -1754,7 +1916,10 @@
     {
       "id": "refined-metal-armor-schematic-1",
       "name": "Refined Metal Armor Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Refined Metal Armor (Uncommon). Can be crafted at Production Assembly Line."
+      ]
     },
     {
       "id": "refined-metal-armor-schematic-3",
@@ -1774,7 +1939,10 @@
     {
       "id": "pal-metal-armor-schematic-1",
       "name": "Pal Metal Armor Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Pal Metal Armor (Uncommon). Can be crafted at Production Assembly Line II."
+      ]
     },
     {
       "id": "pal-metal-armor-schematic-3",
@@ -1794,7 +1962,10 @@
     {
       "id": "tropical-outfit-schematic-1",
       "name": "Tropical Outfit Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Tropical Outfit (Uncommon). Can be crafted at Primitive Workbench."
+      ]
     },
     {
       "id": "tropical-outfit-schematic-3",
@@ -1814,7 +1985,10 @@
     {
       "id": "tundra-outfit-schematic-1",
       "name": "Tundra Outfit Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Tundra Outfit (Uncommon). Can be crafted at Primitive Workbench."
+      ]
     },
     {
       "id": "tundra-outfit-schematic-3",
@@ -1834,7 +2008,10 @@
     {
       "id": "heat-resistant-pelt-armor-schematic-1",
       "name": "Heat Resistant Pelt Armor Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Heat Resistant Pelt Armor (Uncommon). Can be crafted at High-Quality Workbench."
+      ]
     },
     {
       "id": "heat-resistant-pelt-armor-schematic-3",
@@ -1854,7 +2031,10 @@
     {
       "id": "cold-resistant-pelt-armor-schematic-1",
       "name": "Cold Resistant Pelt Armor Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Cold Resistant Pelt Armor (Uncommon). Can be crafted at High-Quality Workbench."
+      ]
     },
     {
       "id": "cold-resistant-pelt-armor-schematic-3",
@@ -1874,7 +2054,10 @@
     {
       "id": "heat-resistant-metal-armor-schematic-1",
       "name": "Heat Resistant Metal Armor Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Heat Resistant Metal Armor (Uncommon). Can be crafted at High-Quality Workbench."
+      ]
     },
     {
       "id": "heat-resistant-metal-armor-schematic-3",
@@ -1894,7 +2077,10 @@
     {
       "id": "cold-resistant-metal-armor-schematic-1",
       "name": "Cold Resistant Metal Armor Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Cold Resistant Metal Armor (Uncommon). Can be crafted at High-Quality Workbench."
+      ]
     },
     {
       "id": "cold-resistant-metal-armor-schematic-3",
@@ -1914,7 +2100,10 @@
     {
       "id": "heat-resistant-refined-metal-armor-schematic-1",
       "name": "Heat Resistant Refined Metal Armor Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Heat Resistant Refined Metal Armor (Uncommon). Can be crafted at Production Assembly Line."
+      ]
     },
     {
       "id": "heat-resistant-refined-metal-armor-schematic-3",
@@ -1934,7 +2123,10 @@
     {
       "id": "cold-resistant-refined-metal-armor-schematic-1",
       "name": "Cold Resistant Refined Metal Armor Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Cold Resistant Refined Metal Armor (Uncommon). Can be crafted at Production Assembly Line."
+      ]
     },
     {
       "id": "cold-resistant-refined-metal-armor-schematic-3",
@@ -1954,7 +2146,10 @@
     {
       "id": "heat-resistant-pal-metal-armor-schematic-1",
       "name": "Heat Resistant Pal Metal Armor Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Heat Resistant Pal Metal Armor (Uncommon). Can be crafted at Production Assembly Line II."
+      ]
     },
     {
       "id": "heat-resistant-pal-metal-armor-schematic-3",
@@ -1974,7 +2169,10 @@
     {
       "id": "cold-resistant-pal-metal-armor-schematic-1",
       "name": "Cold Resistant Pal Metal Armor Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Cold Resistant Pal Metal Armor (Uncommon). Can be crafted at Production Assembly Line II."
+      ]
     },
     {
       "id": "cold-resistant-pal-metal-armor-schematic-3",
@@ -2044,7 +2242,10 @@
     {
       "id": "chikipi-poultry",
       "name": "Chikipi Poultry",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Chikipi meat. Light and easy to eat, it's a local favorite for residents of Palpagos Island."
+      ]
     },
     {
       "id": "lamball-kebab",
@@ -2054,7 +2255,10 @@
     {
       "id": "lamball-mutton",
       "name": "Lamball Mutton",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Lamball meat. Red meat with a unique flavor. Delicious, but takes some getting used to."
+      ]
     },
     {
       "id": "grilled-kelpsea",
@@ -2064,7 +2268,10 @@
     {
       "id": "raw-kelpsea",
       "name": "Raw Kelpsea",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Kelpsea meat. Tender and slightly sweet. Fish meat tends to spoil quickly."
+      ]
     },
     {
       "id": "grilled-galeclaw",
@@ -2074,7 +2281,10 @@
     {
       "id": "galeclaw-poultry",
       "name": "Galeclaw Poultry",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Galeclaw meat. Full of nutrition, its flavor packs a punch."
+      ]
     },
     {
       "id": "roast-rushoar",
@@ -2084,7 +2294,10 @@
     {
       "id": "rushoar-pork",
       "name": "Rushoar Pork",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Rushoar meat. Full of the delicious flavors of wild game. Juicy and nutritious."
+      ]
     },
     {
       "id": "broiled-dumud",
@@ -2094,7 +2307,10 @@
     {
       "id": "raw-dumud",
       "name": "Raw Dumud",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Dumud meat. Fatty with a rich taste. Has a mouthwatering plump texture."
+      ]
     },
     {
       "id": "roast-eikthyrdeer",
@@ -2104,7 +2320,10 @@
     {
       "id": "eikthyrdeer-venison",
       "name": "Eikthyrdeer Venison",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Eikthyrdeer meat. Light and lean, but rich in flavor."
+      ]
     },
     {
       "id": "roast-reindrix",
@@ -2114,7 +2333,10 @@
     {
       "id": "reindrix-venison",
       "name": "Reindrix Venison",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Reindrix meat. Strange venison capable of remaining at low temperatures. Takes a very long time to spoil."
+      ]
     },
     {
       "id": "herb-roasted-caprity",
@@ -2124,7 +2346,10 @@
     {
       "id": "caprity-meat",
       "name": "Caprity Meat",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Caprity meat. Healthy and full of nutrients. Hints of berries scenting the meat stimulates the appetite."
+      ]
     },
     {
       "id": "mozzarina-steak",
@@ -2134,7 +2359,10 @@
     {
       "id": "mozzarina-meat",
       "name": "Mozzarina Meat",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Mozzarina meat. Thick, juicy and marbled. Residents of Palpagos Island cherish it above all other meats."
+      ]
     },
     {
       "id": "broncherry-rib-roast",
@@ -2144,7 +2372,10 @@
     {
       "id": "broncherry-meat",
       "name": "Broncherry Meat",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Broncherry meat. Giant meat full of massive stores of energy. Stuffed to the brim with nutrients gathered through photosynthesis."
+      ]
     },
     {
       "id": "mammorest-steak",
@@ -2154,7 +2385,10 @@
     {
       "id": "mammorest-meat",
       "name": "Mammorest Meat",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Mammorest meat. With massive size comes massive flavor. Its overwhelming portions are sure to satisfy any glutton."
+      ]
     },
     {
       "id": "chikipi-saut",
@@ -2249,7 +2483,10 @@
     {
       "id": "leezpunk-crest",
       "name": "Leezpunk Crest",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Crest dropped from a Leezpunk. Sharp and pointy, it is used to make clothing."
+      ]
     },
     {
       "id": "killamari-cap",
@@ -2259,7 +2496,10 @@
     {
       "id": "killamari-tentacle",
       "name": "Killamari Tentacle",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Tentacle dropped from a Killamari. Strange in texture, it is used to make clothing."
+      ]
     },
     {
       "id": "cawgnito-hat",
@@ -2274,7 +2514,10 @@
     {
       "id": "ribbuny-ribbon",
       "name": "Ribbuny Ribbon",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Ribbon dropped from a Ribbuny. Cute in color and design, it is used to make clothing."
+      ]
     },
     {
       "id": "lamball-helm",
@@ -2294,7 +2537,10 @@
     {
       "id": "swee-hair",
       "name": "Swee Hair",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Hair dropped from a Swee. Fluffy and soft, it is used to make clothing."
+      ]
     },
     {
       "id": "dazzi-hat",
@@ -2304,7 +2550,10 @@
     {
       "id": "dazzi-cloud",
       "name": "Dazzi Cloud",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Cloud dropped from a Dazzi. Soft and fluffy, it is used to make clothing."
+      ]
     },
     {
       "id": "cattiva-hat",
@@ -2319,7 +2568,10 @@
     {
       "id": "bellanoirs-slab-fragment",
       "name": "Bellanoir's Slab Fragment",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Fragment depicting Bellanoir. Combine all of them to create a Slab."
+      ]
     },
     {
       "id": "bellanoir-liberos-slab",
@@ -2329,7 +2581,10 @@
     {
       "id": "bellanoir-liberos-slab-fragment",
       "name": "Bellanoir Libero's Slab Fragment",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Fragment depicting Bellanoir Libero. Combine all of them to create a Slab."
+      ]
     },
     {
       "id": "ring-of-mercy",
@@ -2344,7 +2599,10 @@
     {
       "id": "cavern-mushroom",
       "name": "Cavern Mushroom",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Mushroom that grows prolifically in caves. Can be made into healing medicine."
+      ]
     },
     {
       "id": "recovery-meds",
@@ -2354,7 +2612,10 @@
     {
       "id": "cotton-candy",
       "name": "Cotton Candy",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Cotton candy collected from Woolipop. Its sweetness fluffily melts away in your mouth."
+      ]
     },
     {
       "id": "high-quality-recovery-meds",
@@ -2374,12 +2635,18 @@
     {
       "id": "life-lotus-s",
       "name": "Life Lotus (S)",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Small green flower that is extremely difficult to obtain. Needed to make Vital Remedy."
+      ]
     },
     {
       "id": "predator-core",
       "name": "Predator Core",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Core dropped by Predator Pals. It is filled with mysterious energy."
+      ]
     },
     {
       "id": "stamina-remedy",
@@ -2389,7 +2656,10 @@
     {
       "id": "stamina-lotus-s",
       "name": "Stamina Lotus (S)",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Small yellow flower that is extremely difficult to obtain. Needed to make Stamina Remedy."
+      ]
     },
     {
       "id": "might-remedy",
@@ -2399,7 +2669,10 @@
     {
       "id": "power-lotus-s",
       "name": "Power Lotus (S)",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Small red flower that is extremely difficult to obtain. Needed to make Might Remedy."
+      ]
     },
     {
       "id": "speed-remedy",
@@ -2409,7 +2682,10 @@
     {
       "id": "speed-lotus-s",
       "name": "Speed Lotus (S)",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Small orange flower that is extremely difficult to obtain. Needed to make Speed Remedy."
+      ]
     },
     {
       "id": "burden-remedy",
@@ -2419,7 +2695,10 @@
     {
       "id": "carrying-lotus-s",
       "name": "Carrying Lotus (S)",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Small purple flower that is extremely difficult to obtain. Needed to make Burden Remedy."
+      ]
     },
     {
       "id": "vital-elixir",
@@ -2429,7 +2708,10 @@
     {
       "id": "life-lotus-l",
       "name": "Life Lotus (L)",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Large green flower that is extremely difficult to obtain. Needed to make Vital Elixir."
+      ]
     },
     {
       "id": "stamina-elixir",
@@ -2439,7 +2721,10 @@
     {
       "id": "stamina-lotus-l",
       "name": "Stamina Lotus (L)",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Large yellow flower that is extremely difficult to obtain. Needed to make Stamina Elixir."
+      ]
     },
     {
       "id": "might-elixir",
@@ -2449,7 +2734,10 @@
     {
       "id": "power-lotus-l",
       "name": "Power Lotus (L)",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Large red flower that is extremely difficult to obtain. Needed to make Might Elixir."
+      ]
     },
     {
       "id": "speed-elixir",
@@ -2459,7 +2747,10 @@
     {
       "id": "speed-lotus-l",
       "name": "Speed Lotus (L)",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Large orange flower that is extremely difficult to obtain. Needed to make Speed Elixir."
+      ]
     },
     {
       "id": "burden-elixir",
@@ -2469,7 +2760,10 @@
     {
       "id": "carrying-lotus-l",
       "name": "Carrying Lotus (L)",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Large purple flower that is extremely difficult to obtain. Needed to make Burden Elixir."
+      ]
     },
     {
       "id": "flamethrower",
@@ -2494,7 +2788,10 @@
     {
       "id": "ancient-pal-manuscript",
       "name": "Ancient Pal Manuscript",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "An ancient manuscript written on Pal hide. It may be found by Pals during expeditions.  Required for advancing research."
+      ]
     },
     {
       "id": "training-manual-xl",
@@ -2574,7 +2871,10 @@
     {
       "id": "bellanoir-libero-ultra-slab-fragment",
       "name": "Bellanoir Libero (Ultra) Slab Fragment",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Fragment overflowing with Bellanoir Libero's energy. Combine all of them to create a Slab."
+      ]
     },
     {
       "id": "blazamut-ryu-saddle",
@@ -2619,7 +2919,10 @@
     {
       "id": "blazamut-ryu-slab-fragment",
       "name": "Blazamut Ryu Slab Fragment",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Fragment depicting Blazamut Ryu. Combine all of them to create a Slab."
+      ]
     },
     {
       "id": "blazamut-ryu-ultra-slab",
@@ -2629,7 +2932,10 @@
     {
       "id": "blazamut-ryu-ultra-slab-fragment",
       "name": "Blazamut Ryu (Ultra) Slab Fragment",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Fragment overflowing with the energy of Blazamut Ryu. Combine all of them to create a Slab."
+      ]
     },
     {
       "id": "ring-of-freight",
@@ -2664,7 +2970,10 @@
     {
       "id": "makeshift-handgun-schematic-1",
       "name": "Makeshift Handgun Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Makeshift Handgun (Uncommon). Can be crafted at Weapon Workbench."
+      ]
     },
     {
       "id": "makeshift-handgun-schematic-3",
@@ -2684,7 +2993,10 @@
     {
       "id": "laser-rifle-schematic-1",
       "name": "Laser Rifle Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Laser Rifle (Uncommon). Can be crafted at Weapon Assembly Line II."
+      ]
     },
     {
       "id": "laser-rifle-schematic-3",
@@ -2704,7 +3016,10 @@
     {
       "id": "flamethrower-schematic-1",
       "name": "Flamethrower Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Flamethrower (Uncommon). Can be crafted at Weapon Assembly Line II."
+      ]
     },
     {
       "id": "flamethrower-schematic-3",
@@ -2724,7 +3039,10 @@
     {
       "id": "grenade-launcher-schematic-1",
       "name": "Grenade Launcher Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Grenade Launcher (Uncommon). Can be crafted at Weapon Assembly Line II."
+      ]
     },
     {
       "id": "grenade-launcher-schematic-3",
@@ -2744,7 +3062,10 @@
     {
       "id": "guided-missile-launcher-schematic-1",
       "name": "Guided Missile Launcher Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Guided Missile Launcher (Uncommon). Can be crafted at Weapon Assembly Line II."
+      ]
     },
     {
       "id": "guided-missile-launcher-schematic-3",
@@ -2764,7 +3085,10 @@
     {
       "id": "multi-guided-missile-launcher-schematic",
       "name": "Multi Guided Missile Launcher Schematic",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Multi Guided Missile Launcher (Common). Can be crafted at Weapon Assembly Line II."
+      ]
     },
     {
       "id": "multi-guided-missile-launcher-schematic-2",
@@ -2789,7 +3113,10 @@
     {
       "id": "gatling-gun-schematic-1",
       "name": "Gatling Gun Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Gatling Gun (Uncommon). Can be crafted at Weapon Assembly Line II."
+      ]
     },
     {
       "id": "gatling-gun-schematic-3",
@@ -2809,7 +3136,10 @@
     {
       "id": "plasteel-armor-schematic-1",
       "name": "Plasteel Armor Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Plasteel Armor (Uncommon). Can be crafted at Production Assembly Line II."
+      ]
     },
     {
       "id": "plasteel-armor-schematic-3",
@@ -2829,7 +3159,10 @@
     {
       "id": "heat-resistant-plasteel-armor-schematic-1",
       "name": "Heat Resistant Plasteel Armor Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Heat Resistant Plasteel Armor (Uncommon). Can be crafted at Production Assembly Line II."
+      ]
     },
     {
       "id": "heat-resistant-plasteel-armor-schematic-3",
@@ -2849,7 +3182,10 @@
     {
       "id": "cold-resistant-plasteel-armor-schematic-1",
       "name": "Cold Resistant Plasteel Armor Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Cold Resistant Plasteel Armor (Uncommon). Can be crafted at Production Assembly Line II."
+      ]
     },
     {
       "id": "cold-resistant-plasteel-armor-schematic-3",
@@ -2869,7 +3205,10 @@
     {
       "id": "lightweight-plasteel-armor-schematic-1",
       "name": "Lightweight Plasteel Armor Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Lightweight Plasteel Armor (Uncommon). Can be crafted at Production Assembly Line II."
+      ]
     },
     {
       "id": "lightweight-plasteel-armor-schematic-3",
@@ -2889,7 +3228,10 @@
     {
       "id": "plasteel-helmet-schematic-1",
       "name": "Plasteel Helmet Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Plasteel Helmet (Uncommon). Can be crafted at Production Assembly Line II."
+      ]
     },
     {
       "id": "plasteel-helmet-schematic-3",
@@ -2914,7 +3256,10 @@
     {
       "id": "mysterious-mushroom",
       "name": "Mysterious Mushroom",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Mushrooms that are not suitable for eating raw. Eating makes one more prone to feeling hungry."
+      ]
     },
     {
       "id": "selyne-saddle",
@@ -3004,7 +3349,10 @@
     {
       "id": "xenolord-slab-fragment",
       "name": "Xenolord Slab Fragment",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Fragment depicting Xenolord. Combine all of them to create a Slab."
+      ]
     },
     {
       "id": "plasma-cannon",
@@ -3024,12 +3372,18 @@
     {
       "id": "onion",
       "name": "Onion",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "A cherished and easy-to-grow vegetable with a rich history.  Not suitable for eating raw."
+      ]
     },
     {
       "id": "carrot",
       "name": "Carrot",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "A vibrant, nutrient-rich root vegetable.  Not suitable for raw consumption."
+      ]
     },
     {
       "id": "french-fries",
@@ -3039,7 +3393,10 @@
     {
       "id": "potato",
       "name": "Potato",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "A hardy and filling crop that grows in any terrain.  Not suitable for raw consumption."
+      ]
     },
     {
       "id": "broncherry-fried-noodles",
@@ -3239,12 +3596,18 @@
     {
       "id": "chromite",
       "name": "Chromite",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "A type of metal buried underground.  It can be detected with a Metal Detector on certain islands."
+      ]
     },
     {
       "id": "hexolite-quartz",
       "name": "Hexolite Quartz",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "A rare crystal found only in Feybreak.  Over many years, Paladium has condensed and transformed, now shining with a rainbow-like glow."
+      ]
     },
     {
       "id": "xenolord-ultra-slab",
@@ -3254,7 +3617,10 @@
     {
       "id": "xenolord-ultra-slab-fragment",
       "name": "Xenolord (Ultra) Slab Fragment",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Fragment overflowing with Xenolord's energy. Combine all of them to create a Slab."
+      ]
     },
     {
       "id": "advanced-recovery-meds",
@@ -3299,7 +3665,10 @@
     {
       "id": "hexolite-helmet-schematic-1",
       "name": "Hexolite Helmet Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Hexolite Helmet (Uncommon). Can be crafted at Production Assembly Line II."
+      ]
     },
     {
       "id": "hexolite-helmet-schematic-3",
@@ -3319,7 +3688,10 @@
     {
       "id": "hexolite-armor-schematic-1",
       "name": "Hexolite Armor Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Hexolite Armor (Uncommon). Can be crafted at Production Assembly Line II."
+      ]
     },
     {
       "id": "hexolite-armor-schematic-3",
@@ -3339,7 +3711,10 @@
     {
       "id": "heat-resistant-hexolite-armor-schematic-1",
       "name": "Heat Resistant Hexolite Armor Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Heat Resistant Hexolite Armor (Uncommon). Can be crafted at Production Assembly Line II."
+      ]
     },
     {
       "id": "heat-resistant-hexolite-armor-schematic-3",
@@ -3359,7 +3734,10 @@
     {
       "id": "cold-resistant-hexolite-armor-schematic-1",
       "name": "Cold Resistant Hexolite Armor Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Cold Resistant Hexolite Armor (Uncommon). Can be crafted at Production Assembly Line II."
+      ]
     },
     {
       "id": "cold-resistant-hexolite-armor-schematic-3",
@@ -3379,7 +3757,10 @@
     {
       "id": "lightweight-hexolite-armor-schematic-1",
       "name": "Lightweight Hexolite Armor Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Lightweight Hexolite Armor (Uncommon). Can be crafted at Production Assembly Line II."
+      ]
     },
     {
       "id": "lightweight-hexolite-armor-schematic-3",
@@ -3399,7 +3780,10 @@
     {
       "id": "laser-gatling-gun-schematic-1",
       "name": "Laser Gatling Gun Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Laser Gatling Gun (Uncommon). Can be crafted at Weapon Assembly Line II."
+      ]
     },
     {
       "id": "laser-gatling-gun-schematic-3",
@@ -3419,7 +3803,10 @@
     {
       "id": "plasma-cannon-schematic-1",
       "name": "Plasma Cannon Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Plasma Cannon (Uncommon). Can be crafted at Weapon Assembly Line II."
+      ]
     },
     {
       "id": "plasma-cannon-schematic-3",
@@ -3439,7 +3826,10 @@
     {
       "id": "semi-auto-shotgun-schematic-1",
       "name": "Semi-Auto Shotgun Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Semi-Auto Shotgun (Uncommon). Can be crafted at Weapon Assembly Line II."
+      ]
     },
     {
       "id": "semi-auto-shotgun-schematic-3",
@@ -3459,7 +3849,10 @@
     {
       "id": "old-revolver-schematic-1",
       "name": "Old Revolver Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Old Revolver (Uncommon). Can be crafted at Weapon Assembly Line."
+      ]
     },
     {
       "id": "old-revolver-schematic-3",
@@ -3479,7 +3872,10 @@
     {
       "id": "makeshift-assault-rifle-schematic-1",
       "name": "Makeshift Assault Rifle Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Makeshift Assault Rifle (Uncommon). Can be crafted at Weapon Workbench."
+      ]
     },
     {
       "id": "makeshift-assault-rifle-schematic-3",
@@ -3499,7 +3895,10 @@
     {
       "id": "semi-auto-rifle-schematic-1",
       "name": "Semi-Auto Rifle Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Semi-Auto Rifle (Uncommon). Can be crafted at Weapon Assembly Line."
+      ]
     },
     {
       "id": "semi-auto-rifle-schematic-3",
@@ -3519,7 +3918,10 @@
     {
       "id": "makeshift-smg-schematic-1",
       "name": "Makeshift SMG Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Makeshift SMG (Uncommon). Can be crafted at Weapon Workbench."
+      ]
     },
     {
       "id": "makeshift-smg-schematic-3",
@@ -3539,7 +3941,10 @@
     {
       "id": "smg-schematic-1",
       "name": "SMG Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for SMG (Uncommon). Can be crafted at Weapon Assembly Line."
+      ]
     },
     {
       "id": "smg-schematic-3",
@@ -3559,7 +3964,10 @@
     {
       "id": "makeshift-shotgun-schematic-1",
       "name": "Makeshift Shotgun Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Makeshift Shotgun (Uncommon). Can be crafted at Weapon Workbench."
+      ]
     },
     {
       "id": "makeshift-shotgun-schematic-3",
@@ -3649,7 +4057,10 @@
     {
       "id": "advanced-bow-schematic-1",
       "name": "Advanced Bow Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Advanced Bow (Uncommon). Can be crafted at Weapon Assembly Line II."
+      ]
     },
     {
       "id": "advanced-bow-schematic-3",
@@ -3669,7 +4080,10 @@
     {
       "id": "compound-bow-schematic-1",
       "name": "Compound Bow Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Compound Bow (Uncommon). Can be crafted at Weapon Assembly Line."
+      ]
     },
     {
       "id": "compound-bow-schematic-3",
@@ -3779,7 +4193,10 @@
     {
       "id": "hallowed-bar",
       "name": "Hallowed Bar",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "[Tides of Terraria]  A sacred material infused with divine energy.  Can be used to create a variety of Terraria items."
+      ]
     },
     {
       "id": "charge-rifle-ammo",
@@ -3829,7 +4246,10 @@
     {
       "id": "overheat-rifle-schematic-1",
       "name": "Overheat Rifle Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Overheat Rifle (Uncommon).  Can be crafted at Advanced Weapon Assembly Line."
+      ]
     },
     {
       "id": "overheat-rifle-schematic-3",
@@ -3859,7 +4279,10 @@
     {
       "id": "charge-rifle-schematic-1",
       "name": "Charge Rifle Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Charge Rifle (Uncommon).  Can be crafted at Advanced Weapon Assembly Line."
+      ]
     },
     {
       "id": "charge-rifle-schematic-3",
@@ -3879,7 +4302,10 @@
     {
       "id": "energy-shotgun-schematic-1",
       "name": "Energy Shotgun Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Energy Shotgun (Uncommon).  Can be crafted at Advanced Weapon Assembly Line."
+      ]
     },
     {
       "id": "energy-shotgun-schematic-3",
@@ -4014,7 +4440,10 @@
     {
       "id": "coralum-ore",
       "name": "Coralum Ore",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "A rare ore formed over countless years  in the deep sea.  Can be retrieved from the depths with  a magnet and fishing rod."
+      ]
     },
     {
       "id": "intermediate-fishing-rod-cattiva",
@@ -4069,7 +4498,10 @@
     {
       "id": "gloopie-tentacle",
       "name": "Gloopie Tentacle",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Gloopie tentacle.  Known for its springy texture and light, refined flavor."
+      ]
     },
     {
       "id": "jelliettes-jiggly-jelly",
@@ -4079,7 +4511,10 @@
     {
       "id": "jelliette-bell-flesh",
       "name": "Jelliette Bell Flesh",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Jelliette's fleshy bell.  Packed with ocean flavor and a delightfully chewy bite."
+      ]
     },
     {
       "id": "jellroys-jolly-jelly",
@@ -4089,7 +4524,10 @@
     {
       "id": "jellroy-bell-flesh",
       "name": "Jellroy Bell Flesh",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Jellroy's fleshy bell.  Packed with ocean flavor and a delightfully plump texture."
+      ]
     },
     {
       "id": "munchill-steak",
@@ -4099,7 +4537,10 @@
     {
       "id": "munchill-meat",
       "name": "Munchill Meat",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Munchill meat.  Has a satisfying chew that brings out layers of umami as you eat."
+      ]
     },
     {
       "id": "excalibur-schematic-1",
@@ -4109,7 +4550,10 @@
     {
       "id": "excalibur-schematic",
       "name": "Excalibur Schematic",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "[Tides of Terraria]  When in inventory, unlocks recipe for Excalibur.  Can be crafted at Weapon Assembly Line."
+      ]
     },
     {
       "id": "excalibur-schematic-2",
@@ -4134,7 +4578,10 @@
     {
       "id": "terraprisma-schematic",
       "name": "Terraprisma Schematic",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "[Tides of Terraria]  When in inventory, unlocks recipe for Terraprisma.  Can be crafted at Weapon Assembly Line."
+      ]
     },
     {
       "id": "terraprisma-schematic-2",
@@ -4159,7 +4606,10 @@
     {
       "id": "vortex-beater-schematic",
       "name": "Vortex Beater Schematic",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "[Tides of Terraria]  When in inventory, unlocks recipe for Vortex Beater.  Can be crafted at Weapon Assembly Line."
+      ]
     },
     {
       "id": "vortex-beater-schematic-2",
@@ -4204,7 +4654,10 @@
     {
       "id": "nightglow-schematic",
       "name": "Nightglow Schematic",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "[Tides of Terraria]  When in inventory, unlocks recipe for Nightglow.  Can be crafted at Weapon Assembly Line."
+      ]
     },
     {
       "id": "nightglow-schematic-2",
@@ -4229,7 +4682,10 @@
     {
       "id": "terra-blade-schematic",
       "name": "Terra Blade Schematic",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "[Tides of Terraria] When in inventory, unlocks recipe for Terra Blade.  Can be crafted at Weapon Assembly Line."
+      ]
     },
     {
       "id": "terra-blade-schematic-2",
@@ -4254,7 +4710,10 @@
     {
       "id": "hallowed-mask-schematic",
       "name": "Hallowed Mask Schematic",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "[Tides of Terraria]  When in inventory, unlocks recipe for Hallowed Mask.  Can be crafted at Production Assembly Line."
+      ]
     },
     {
       "id": "hallowed-mask-schematic-2",
@@ -4279,7 +4738,10 @@
     {
       "id": "hallowed-headgear-schematic",
       "name": "Hallowed Headgear Schematic",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "[Tides of Terraria]  When in inventory, unlocks recipe for Hallowed Headgear.  Can be crafted at Production Assembly Line."
+      ]
     },
     {
       "id": "hallowed-headgear-schematic-2",
@@ -4304,7 +4766,10 @@
     {
       "id": "hallowed-plate-mail-schematic",
       "name": "Hallowed Plate Mail Schematic",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "[Tides of Terraria]  When in inventory, unlocks recipe for Hallowed Plate Mail.  Can be crafted at Production Assembly Line."
+      ]
     },
     {
       "id": "hallowed-plate-mail-schematic-2",
@@ -4329,7 +4794,10 @@
     {
       "id": "hallowed-helmet-schematic",
       "name": "Hallowed Helmet Schematic",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "[Tides of Terraria]  When in inventory, unlocks recipe for Hallowed Helmet.  Can be crafted at Production Assembly Line."
+      ]
     },
     {
       "id": "hallowed-helmet-schematic-2",
@@ -4354,7 +4822,10 @@
     {
       "id": "hallowed-hood-schematic",
       "name": "Hallowed Hood Schematic",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "[Tides of Terraria]  When in inventory, unlocks recipe for Hallowed Hood.  Can be crafted at Production Assembly Line."
+      ]
     },
     {
       "id": "hallowed-hood-schematic-2",
@@ -4384,12 +4855,18 @@
     {
       "id": "world-tree-holy-water",
       "name": "World Tree Holy Water",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Sacred water brimming with the energy of the World Tree. It purifies all things and awakens latent powers. When consumed, World Tree resources will not vanish when approached for a period of time."
+      ]
     },
     {
       "id": "caramel-cotton-candy",
       "name": "Caramel Cotton Candy",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Caramel cotton candy collected from Woolipop Terra. Its fluffy sweetness melts away in your mouth."
+      ]
     },
     {
       "id": "depresso-helmet",
@@ -4444,7 +4921,10 @@
     {
       "id": "hartalis-slab-fragment",
       "name": "Hartalis Slab Fragment",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Fragment depicting Hartalis.  Combine all of them to create a Slab."
+      ]
     },
     {
       "id": "hartalis-ultra-slab",
@@ -4454,7 +4934,10 @@
     {
       "id": "hartalis-ultra-slab-fragment",
       "name": "Hartalis (Ultra) Slab Fragment",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Fragment overflowing with Hartalis energy.  Combine all of them to create a Slab."
+      ]
     },
     {
       "id": "v1-armor",
@@ -4474,7 +4957,10 @@
     {
       "id": "water-radiant-gem",
       "name": "Water Radiant Gem",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "A gem formed as World Tree energy accumulates within a Pal’s body. When processed, it becomes an item that releases the hidden power of Water Pals."
+      ]
     },
     {
       "id": "electric-awakening-crystal",
@@ -4484,7 +4970,10 @@
     {
       "id": "electric-radiant-gem",
       "name": "Electric Radiant Gem",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "A gem formed as World Tree energy accumulates within a Pal’s body. When processed, it becomes an item that releases the hidden power of  Electric Pals."
+      ]
     },
     {
       "id": "ground-awakening-crystal",
@@ -4494,7 +4983,10 @@
     {
       "id": "ground-radiant-gem",
       "name": "Ground Radiant Gem",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "A gem formed as World Tree energy accumulates within a Pal’s body. When processed, it becomes an item that releases the hidden power of Ground Pals."
+      ]
     },
     {
       "id": "grass-awakening-crystal",
@@ -4504,7 +4996,10 @@
     {
       "id": "grass-radiant-gem",
       "name": "Grass Radiant Gem",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "A gem formed as World Tree energy accumulates within a Pal’s body. When processed, it becomes an item that releases the hidden power of Grass Pals."
+      ]
     },
     {
       "id": "fire-awakening-crystal",
@@ -4514,7 +5009,10 @@
     {
       "id": "fire-radiant-gem",
       "name": "Fire Radiant Gem",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "A gem formed as World Tree energy accumulates within a Pal’s body. When processed, it becomes an item that releases the hidden power of Fire Pals."
+      ]
     },
     {
       "id": "ice-awakening-crystal",
@@ -4524,7 +5022,10 @@
     {
       "id": "ice-radiant-gem",
       "name": "Ice Radiant Gem",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "A gem formed as World Tree energy accumulates within a Pal’s body. When processed, it becomes an item that releases the hidden power of Ice Pals."
+      ]
     },
     {
       "id": "dragon-awakening-crystal",
@@ -4534,7 +5035,10 @@
     {
       "id": "dragon-radiant-gem",
       "name": "Dragon Radiant Gem",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "A gem formed as World Tree energy accumulates within a Pal’s body. When processed, it becomes an item that releases the hidden power of Dragon Pals."
+      ]
     },
     {
       "id": "dark-awakening-crystal",
@@ -4544,7 +5048,10 @@
     {
       "id": "dark-radiant-gem",
       "name": "Dark Radiant Gem",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "A gem formed as World Tree energy accumulates within a Pal’s body. When processed, it becomes an item that releases the hidden power of Dark Pals."
+      ]
     },
     {
       "id": "neutral-awakening-crystal",
@@ -4554,7 +5061,10 @@
     {
       "id": "neutral-radiant-gem",
       "name": "Neutral Radiant Gem",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "A gem formed as World Tree energy accumulates within a Pal’s body. When processed, it becomes an item that releases the hidden power of Neutral Pals."
+      ]
     },
     {
       "id": "plasma-multicutter",
@@ -4619,7 +5129,10 @@
     {
       "id": "mechanical-bow-schematic-1",
       "name": "Mechanical Bow Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Mechanical Bow  (Uncommon). Can be crafted at Ancient Workbench."
+      ]
     },
     {
       "id": "mechanical-bow-schematic-3",
@@ -4639,7 +5152,10 @@
     {
       "id": "combat-smg-schematic-1",
       "name": "Combat SMG Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Combat SMG  (Uncommon). Can be crafted at Ancient Workbench."
+      ]
     },
     {
       "id": "combat-smg-schematic-3",
@@ -4659,7 +5175,10 @@
     {
       "id": "prototype-shotgun-schematic-1",
       "name": "Prototype Shotgun Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Prototype Shotgun  (Uncommon). Can be crafted at Ancient Workbench."
+      ]
     },
     {
       "id": "prototype-shotgun-schematic-3",
@@ -4679,7 +5198,10 @@
     {
       "id": "heavy-assault-rifle-schematic-1",
       "name": "Heavy Assault Rifle Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Heavy Assault Rifle  (Uncommon). Can be crafted at Ancient Workbench."
+      ]
     },
     {
       "id": "heavy-assault-rifle-schematic-3",
@@ -4699,7 +5221,10 @@
     {
       "id": "tactical-grenade-launcher-schematic-1",
       "name": "Tactical Grenade Launcher Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Tactical Grenade Launcher  (Uncommon). Can be crafted at Ancient Workbench."
+      ]
     },
     {
       "id": "tactical-grenade-launcher-schematic-3",
@@ -4719,7 +5244,10 @@
     {
       "id": "laser-sword-schematic-1",
       "name": "Laser Sword Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Laser Sword  (Uncommon). Can be crafted at Ancient Workbench."
+      ]
     },
     {
       "id": "laser-sword-schematic-3",
@@ -4739,7 +5267,10 @@
     {
       "id": "beam-scatter-schematic-1",
       "name": "Beam Scatter Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Beam Scatter  (Uncommon). Can be crafted at Ancient Workbench."
+      ]
     },
     {
       "id": "beam-scatter-schematic-3",
@@ -4759,7 +5290,10 @@
     {
       "id": "drone-launcher-schematic-1",
       "name": "Drone Launcher Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Drone Launcher  (Uncommon). Can be crafted at Ancient Workbench."
+      ]
     },
     {
       "id": "drone-launcher-schematic-3",
@@ -4779,7 +5313,10 @@
     {
       "id": "plasma-rifle-schematic-1",
       "name": "Plasma Rifle Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Plasma Rifle  (Uncommon). Can be crafted at Ancient Workbench."
+      ]
     },
     {
       "id": "plasma-rifle-schematic-3",
@@ -4799,7 +5336,10 @@
     {
       "id": "beam-launcher-schematic-1",
       "name": "Beam Launcher Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Beam Launcher  (Uncommon). Can be crafted at Ancient Workbench."
+      ]
     },
     {
       "id": "beam-launcher-schematic-3",
@@ -4819,7 +5359,10 @@
     {
       "id": "sword-schematic-1",
       "name": "Sword Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Sword (Uncommon). Can be crafted at Weapon Workbench."
+      ]
     },
     {
       "id": "sword-schematic-3",
@@ -4839,7 +5382,10 @@
     {
       "id": "katana-schematic-1",
       "name": "Katana Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Katana (Uncommon). Can be crafted at Weapon Assembly Line II."
+      ]
     },
     {
       "id": "katana-schematic-3",
@@ -4859,7 +5405,10 @@
     {
       "id": "beam-sword-schematic-1",
       "name": "Beam Sword Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Beam Sword (Uncommon). Can be crafted at Weapon Assembly Line II."
+      ]
     },
     {
       "id": "beam-sword-schematic-3",
@@ -4924,12 +5473,18 @@
     {
       "id": "mythical-wood",
       "name": "Mythical Wood",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Rare wood imbued with the power of the World Tree. Only skilled craftsmen are able to process it."
+      ]
     },
     {
       "id": "soralite",
       "name": "Soralite",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "A rare ore produced only in Sunreach. Within its host rock of overwhelming density resides a mysterious pattern and radiance."
+      ]
     },
     {
       "id": "ancient-armor",
@@ -4964,7 +5519,10 @@
     {
       "id": "ancient-helm-schematic-1",
       "name": "Ancient Helm Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Ancient Helm (Uncommon). Can be crafted at Ancient Workbench."
+      ]
     },
     {
       "id": "ancient-helm-schematic-3",
@@ -4984,7 +5542,10 @@
     {
       "id": "ancient-armor-schematic-1",
       "name": "Ancient Armor Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Ancient Armor (Uncommon). Can be crafted at Ancient Workbench."
+      ]
     },
     {
       "id": "ancient-armor-schematic-3",
@@ -5004,7 +5565,10 @@
     {
       "id": "heat-resistant-ancient-armor-schematic-1",
       "name": "Heat-Resistant Ancient Armor Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Heat-Resistant Ancient Armor (Uncommon). Can be crafted at Ancient Workbench."
+      ]
     },
     {
       "id": "heat-resistant-ancient-armor-schematic-3",
@@ -5024,7 +5588,10 @@
     {
       "id": "cold-resistant-ancient-armor-schematic-1",
       "name": "Cold-Resistant Ancient Armor Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Cold-Resistant Ancient Armor (Uncommon). Can be crafted at Ancient Workbench."
+      ]
     },
     {
       "id": "cold-resistant-ancient-armor-schematic-3",
@@ -5044,7 +5611,10 @@
     {
       "id": "lightweight-ancient-armor-schematic-1",
       "name": "Lightweight Ancient Armor Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Lightweight Ancient Armor (Uncommon). Can be crafted at Ancient Workbench."
+      ]
     },
     {
       "id": "lightweight-ancient-armor-schematic-3",
@@ -5079,7 +5649,10 @@
     {
       "id": "ancient-bone",
       "name": "Ancient Bone",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "A beast bone weathered over many years in extreme environments. Even after losing its flesh, it still gives off a strong presence."
+      ]
     },
     {
       "id": "silvegis-emblem",
@@ -5104,7 +5677,10 @@
     {
       "id": "explosion-resistant-fiber",
       "name": "Explosion-Resistant Fiber",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Fibers taken from the surface of a Silvance’s body. It can reduce the impact of explosions."
+      ]
     },
     {
       "id": "warsect-terras-belt",
@@ -5114,7 +5690,10 @@
     {
       "id": "ancient-lava",
       "name": "Ancient Lava",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "A mass of lava formed over long years in extreme environments. The sealed-in blue lava is still emitting heat."
+      ]
     },
     {
       "id": "islanders-tool-belt",
@@ -5124,7 +5703,10 @@
     {
       "id": "ancient-bark",
       "name": "Ancient Bark",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "The bark of a tree that has lived for many years in extreme environments. Even the thin bark evokes a sense of boundless vitality."
+      ]
     },
     {
       "id": "celestial-emperors-baton",
@@ -5274,12 +5856,18 @@
     {
       "id": "tomato-seeds",
       "name": "Tomato Seeds",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Seeds that produce Tomato. Necessary for starting a farm. Can be purchased from a merchant."
+      ]
     },
     {
       "id": "onion-seeds",
       "name": "Onion Seeds",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Seeds that produce Onion. Necessary for starting a farm."
+      ]
     },
     {
       "id": "katress-ring",
@@ -5324,7 +5912,10 @@
     {
       "id": "metal-bat-schematic-1",
       "name": "Metal Bat Schematic 1",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "When in inventory, unlocks recipe for Metal Bat  (Uncommon). Can be crafted at Weapon Assembly Line."
+      ]
     },
     {
       "id": "metal-bat-schematic-3",
@@ -5359,7 +5950,10 @@
     {
       "id": "skutlass-sashimi",
       "name": "Skutlass Sashimi",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "Raw slices of Skutlass.  Characterized by its supple, plump flesh. Caution is required when preparing it due to its sword-like spine."
+      ]
     },
     {
       "id": "seafood-pasta",
@@ -5574,7 +6168,10 @@
     {
       "id": "giant-pal-soul",
       "name": "Giant Pal Soul",
-      "kind": "raw"
+      "kind": "raw",
+      "acquisition": [
+        "The soul left behind by a highly trained Pal. It can draw out hidden abilities if offered to a Statue of Power."
+      ]
     }
   ],
   "recipes": [
