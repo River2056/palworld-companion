@@ -54,12 +54,12 @@ for (const [name, item] of Object.entries(source)) {
 
 const outputIds = new Set(candidates.map(recipe => recipe.outputItemId));
 const allNames = new Map();
-for (const [name, item] of Object.entries(source)) if (item.legal !== false) allNames.set(slug(name), item.name ?? name);
-const usedNames = new Map();
-for (const [id, name] of allNames) {
-  const previous = usedNames.get(id);
-  if (previous && previous !== name) throw new Error(`Item ID collision: ${previous} / ${name}`);
-  usedNames.set(id, name);
+for (const [name, item] of Object.entries(source)) {
+  if (item.legal === false) continue;
+  const id = slug(name);
+  const displayName = item.name ?? name;
+  if (allNames.has(id)) throw new Error(`Item ID collision: ${allNames.get(id)} / ${displayName}`);
+  allNames.set(id, displayName);
 }
 
 const edges = new Map([...outputIds].map(id => [id, new Set()]));
