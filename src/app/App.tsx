@@ -22,7 +22,7 @@ async function readWorkspaceRevision() {
 type WorkspaceRevision = Awaited<ReturnType<typeof readWorkspaceRevision>>;
 
 const GuildWorkspace = lazy(() => import('../features/guild').then(module => ({ default: module.GuildWorkspace })));
-const destinations = ['Today', 'Craft', 'Breeding', 'Bases', 'Guild', 'Settings'] as const;
+const destinations = ['Today', 'Craft', 'Queue', 'Breeding', 'Bases', 'Guild', 'Settings'] as const;
 type Destination = typeof destinations[number];
 function readDestination(): Destination {
   return destinations.find((name) => window.location.hash === `#/${name.toLowerCase()}`) ?? 'Today';
@@ -135,7 +135,15 @@ export default function App() {
         {guildOpened&&<div hidden={destination!=='Guild'} inert={destination!=='Guild'} style={destination!=='Guild'?{display:'none'}:undefined}><Suspense fallback={<p role="status">Loading guild interface…</p>}><GuildWorkspace workspace={data} onSummary={setGuildSummary} onSession={setGuildAuthenticated} logoutSignal={logoutSignal}/></Suspense></div>}
         {data&&destination!=='Guild'&&<fieldset key={editorEpoch} disabled={busy} className="workspace" onInputCapture={event=>{if(destination==='Breeding'||destination==='Bases')return;const editor=editorFor(event.target);if(editor){dirtyEditors.current.add(editor);dirty.current=true;}}} onClickCapture={event=>{actionEditor.current=editorFor(event.target);}} onSubmitCapture={event=>{actionEditor.current=editorFor(event.target);}}>
           {destination==='Today'&&<Today data={data} update={update} guildSummary={guildSummary} guildAuthenticated={guildAuthenticated} onGuildLogout={()=>{setGuildSummary(null);setGuildAuthenticated(false);setLogoutSignal(value=>value+1);}}/>}
-          {destination==='Craft'&&<div className="stack"><div data-workspace-editor><Craft data={data} update={update}/></div><Queue data={data} update={update}/><Inventory data={data} update={update}/></div>}
+          {/* Keep one owner for each editor across Craft ↔ Queue and viewport changes.
+              Hidden working forms retain drafts; the queue is never duplicated. */}
+          {(destination==='Craft'||destination==='Queue')&&<div className={`craft-layout ${destination==='Queue'?'queue-screen':''}`}>
+            <div className="craft-working-area stack" hidden={destination==='Queue'} inert={destination==='Queue'}>
+              <div data-workspace-editor><Craft data={data} update={update}/></div>
+              <Inventory data={data} update={update}/>
+            </div>
+            <aside className="pinned-plans" aria-label="Pinned plans"><Queue data={data} update={update}/></aside>
+          </div>}
           {destination==='Breeding'&&<PalWorkspace initialTargetSpeciesId={targetSpecies} onWorkspaceWrite={async()=>receive(await readWorkspaceRevision())}/>}
           {destination==='Bases'&&<BaseWorkspace onWorkspaceWrite={async()=>receive(await readWorkspaceRevision())} onTargetSpecies={id=>{setTargetSpecies(id);window.location.hash='#/breeding';}}/>}
           {destination==='Settings'&&<div className="stack"><Settings data={data} update={update}/><PalBackupPanel/></div>}

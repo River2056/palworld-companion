@@ -1,3 +1,4 @@
+import { inQueue } from './queue-navigation';
 import { expect, test } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 
@@ -13,7 +14,7 @@ test('legacy inventory gains a manual timestamp; history reopens without changin
  await expect(page.getByRole('region',{name:'Import preview'})).toHaveCount(0);
  // Legacy IDs must not become runnable under silently substituted rules.
  await page.getByRole('link',{name:'Craft',exact:true}).click();
- await expect(page.getByRole('button',{name:'Complete arrow',exact:true})).toBeDisabled();
+ await inQueue(page,async()=>{await expect(page.getByRole('button',{name:'Complete arrow',exact:true})).toBeDisabled();});
  await page.getByRole('link',{name:'Settings',exact:true}).click();
  await page.getByRole('checkbox',{name:'I acknowledge applying current rules to legacy plans, not recovering history',exact:true}).check();
  await page.getByRole('button',{name:'Preview catalog migration',exact:true}).click();
@@ -32,6 +33,7 @@ test('legacy inventory gains a manual timestamp; history reopens without changin
  await expect(timestamp).toHaveCount(1);
  const savedTime = await timestamp.getAttribute('datetime');
  expect(savedTime).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+ await page.getByRole('link',{name:'Queue',exact:true}).click();
  await page.getByRole('button',{name:'Complete Arrow',exact:true}).click();
  const active = page.getByRole('region',{name:'Active craft goals'});
  const history = page.getByRole('region',{name:'Completed goal history'});
@@ -39,8 +41,10 @@ test('legacy inventory gains a manual timestamp; history reopens without changin
  await expect(active.getByRole('listitem')).toHaveCount(0);
  await page.reload();
  await expect(history.getByText('Keep original identity',{exact:true})).toBeVisible();
+ await page.getByRole('link',{name:'Craft',exact:true}).click();
  await expect(wood).toHaveValue('8');
  await expect(timestamp).toHaveAttribute('datetime',savedTime!);
+ await page.getByRole('link',{name:'Queue',exact:true}).click();
  await history.getByRole('button',{name:'Reopen Arrow (progress only)',exact:true}).click();
  await expect(active.getByRole('heading',{name:'Arrow · 0 / 11'})).toBeVisible();
  await expect(history.getByRole('listitem')).toHaveCount(0);

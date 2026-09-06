@@ -1,3 +1,4 @@
+import { inQueue } from './queue-navigation';
 import {test as base,expect,type Page} from '@playwright/test';
 const test=base.extend<{url:string}>({
  url:async({baseURL},use)=>{
@@ -15,9 +16,9 @@ test('snapshot pin, legacy cancel/adopt and rollback retain later quantities',as
  await page.goto(url+'/#/craft');
  await page.getByRole('button',{name:'Select Pal Sphere',exact:true}).click();
  await page.getByRole('button',{name:'Pin craft goal',exact:true}).click();
- await expect(page.getByRole('heading',{name:'Pal Sphere · 0 / 1',exact:true})).toBeVisible();
+ await inQueue(page,async()=>{await expect(page.getByRole('heading',{name:'Pal Sphere · 0 / 1',exact:true})).toBeVisible();});
  await page.reload();
- await expect(page.getByRole('heading',{name:'Pal Sphere · 0 / 1',exact:true})).toBeVisible();
+ await inQueue(page,async()=>{await expect(page.getByRole('heading',{name:'Pal Sphere · 0 / 1',exact:true})).toBeVisible();});
  const bound=await page.evaluate(async()=>{const {workspaceStore}=await import(/* @vite-ignore */ String('/src/data/workspace.ts'));return (await workspaceStore.load()).goals[0];});
  expect(bound.catalogBinding.state).toBe('bound');expect(bound.recipeId).toBe('pal-sphere');
  await page.goto(url+'/#/settings');
@@ -53,7 +54,7 @@ test('validated synthetic alternate persists and partial unknown never consumes 
  await expect(page.getByRole('button',{name:/Preview rollback revision/}).first()).toBeVisible();
  await page.goto(url+'/#/craft');await page.getByRole('button',{name:'Select Pal Sphere',exact:true}).click();await page.getByLabel('Root recipe',{exact:true}).selectOption('fixture-sphere-alt');
  await page.getByText('Recipe ingredient tree',{exact:true}).click();await page.locator('summary').filter({hasText:/Pal Sphere: 1 units/}).click();await page.locator('summary').filter({hasText:/Ingot: 2 units/}).click();await page.getByLabel('Recipe for Ingot',{exact:true}).selectOption('fixture-ingot-alt');
- await page.getByRole('button',{name:'Pin craft goal',exact:true}).click();await expect(page.getByRole('heading',{name:'Pal Sphere · 0 / 1',exact:true})).toBeVisible();await page.reload();
+ await page.getByRole('button',{name:'Pin craft goal',exact:true}).click();await inQueue(page,async()=>{await expect(page.getByRole('heading',{name:'Pal Sphere · 0 / 1',exact:true})).toBeVisible();});await page.reload();
  const saved=await page.evaluate(async()=>{const {workspaceStore}=await import(/* @vite-ignore */ String('/src/data/workspace.ts'));const data=await workspaceStore.load();const g=data.goals[0];await workspaceStore.save({...data,goals:[g,{...g,id:'second'},{...g,id:'unknown',item:'absent'}],stock:{wood:4,ore:1}});return g;});
  expect(saved.recipeId).toBe('fixture-sphere-alt');expect(saved.recipeOverrides.ingot).toBe('fixture-ingot-alt');await page.reload();
  await expect(page.getByText(/Some goals unresolved/)).toBeVisible();
@@ -66,7 +67,7 @@ test('synthetic candidate numeric deltas share queue stock; cancel is inert and 
  await page.getByRole('button',{name:'Select Arrow',exact:true}).click();
  await page.getByLabel('Desired finished units').fill('11');
  await page.getByRole('button',{name:'Pin craft goal',exact:true}).click();
- await expect(page.getByRole('heading',{name:'Arrow · 0 / 11',exact:true})).toBeVisible();
+ await inQueue(page,async()=>{await expect(page.getByRole('heading',{name:'Arrow · 0 / 11',exact:true})).toBeVisible();});
  const fixture=await page.evaluate(async()=>{
   const {workspaceStore}=await import(/* @vite-ignore */ String('/src/data/workspace.ts'));
   const {createCatalogSnapshot}=await import(/* @vite-ignore */ String('/src/domain/catalog-snapshot.ts'));
@@ -96,8 +97,8 @@ test('synthetic candidate numeric deltas share queue stock; cancel is inert and 
  });
  await page.goto(url+'/#/craft');await page.reload();
  await expect(page.getByText(/first: snapshot-missing/)).toBeVisible();
- await expect(page.getByRole('button',{name:'Complete arrow',exact:true})).toBeDisabled();
- await expect(page.getByRole('button',{name:'Complete Arrow',exact:true})).toBeEnabled();
+ await inQueue(page,async()=>{await expect(page.getByRole('button',{name:'Complete arrow',exact:true})).toBeDisabled();});
+ await inQueue(page,async()=>{await expect(page.getByRole('button',{name:'Complete Arrow',exact:true})).toBeEnabled();});
 });
 
 

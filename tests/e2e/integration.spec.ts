@@ -1,3 +1,4 @@
+import { inQueue } from './queue-navigation';
 import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
@@ -32,7 +33,7 @@ test('personal modules persist real Pal edits and base assignment without networ
  await page.getByLabel('Search recipes').fill('Arrow');
  await page.getByRole('button',{name:'Select Arrow',exact:true}).click();
  await page.getByRole('button',{name:'Pin craft goal',exact:true}).click();
- await expect(page.getByRole('heading',{name:/Arrow · 0 \//})).toBeVisible();
+ await inQueue(page,async()=>{await expect(page.getByRole('heading',{name:/Arrow · 0 \//})).toBeVisible();});
  await page.getByRole('link',{name:'Settings',exact:true}).click();
  const downloadPromise=page.waitForEvent('download');
  await page.getByRole('button',{name:'Export Pal backup',exact:true}).click();

@@ -1,3 +1,4 @@
+import { inQueue } from './queue-navigation';
 import {expect, test, type Page} from '@playwright/test';
 import {readFileSync} from 'node:fs';
 import type {PalBackup} from '../../src/features/pals/backup';
@@ -85,7 +86,7 @@ test('scoped backup roundtrip retains nonempty roster/checklist/base and unknown
  await page.getByLabel('Search recipes').fill('Arrow');
  await page.getByRole('button',{name:'Select Arrow',exact:true}).click();
  await page.getByRole('button',{name:'Pin craft goal',exact:true}).click();
- await expect(page.getByRole('heading',{name:/Arrow · 0 \//})).toBeVisible();
+ await inQueue(page,async()=>{await expect(page.getByRole('heading',{name:/Arrow · 0 \//})).toBeVisible();});
  await page.getByRole('spinbutton',{name:'Wood stock',exact:true}).fill('37');
  await page.getByRole('button',{name:'Save Wood stock',exact:true}).click();
  await page.getByRole('link',{name:'Settings',exact:true}).click();

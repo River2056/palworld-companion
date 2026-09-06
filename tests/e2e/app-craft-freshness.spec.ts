@@ -1,3 +1,4 @@
+import { inQueue } from './queue-navigation';
 import {test,expect,type Page} from '@playwright/test';
 const read=async(page:Page)=>page.evaluate(async()=>{
  const {workspaceStore}=await import(/* @vite-ignore */ String('/src/data/workspace.ts'));
@@ -6,9 +7,9 @@ const read=async(page:Page)=>page.evaluate(async()=>{
 test('two tabs: actual App stale save rejects with zero writes; draft survives and explicit review recovers',async({page,context})=>{
  await page.goto('/#/craft');await page.getByRole('button',{name:'Select Arrow',exact:true}).click();
  await page.getByRole('button',{name:'Pin craft goal',exact:true}).click();
- await expect(page.getByRole('heading',{name:'Arrow · 0 / 1',exact:true})).toBeVisible();
+ await inQueue(page,async()=>{await expect(page.getByRole('heading',{name:'Arrow · 0 / 1',exact:true})).toBeVisible();});
  const tab=await context.newPage();await tab.goto('/#/craft');
- await expect(tab.getByRole('heading',{name:'Arrow · 0 / 1',exact:true})).toBeVisible();
+ await inQueue(tab,async()=>{await expect(tab.getByRole('heading',{name:'Arrow · 0 / 1',exact:true})).toBeVisible();});
  const baseline=await read(page);
  // Record actual App save arguments; delegate unchanged to real IndexedDB CAS.
  await page.evaluate(async()=>{
@@ -34,13 +35,14 @@ test('two tabs: actual App stale save rejects with zero writes; draft survives a
  await page.getByRole('button',{name:'Save Wood stock',exact:true}).click();
  await expect.poll(async()=>(await read(page)).revision).toBe(before.revision+1);
  await tab.reload();await expect(tab.getByRole('spinbutton',{name:'Wood stock',exact:true})).toHaveValue('12');
- await expect(tab.getByRole('heading',{name:'Arrow · 0 / 1',exact:true})).toBeVisible();
+ await inQueue(tab,async()=>{await expect(tab.getByRole('heading',{name:'Arrow · 0 / 1',exact:true})).toBeVisible();});
 });
 
 test('catalog migration while drafting rejects old queue write without restoring old bindings',async({page,context})=>{
  await page.goto('/#/craft');await page.getByRole('button',{name:'Select Arrow',exact:true}).click();
  await page.getByRole('button',{name:'Pin craft goal',exact:true}).click();
- await expect(page.getByRole('heading',{name:'Arrow · 0 / 1',exact:true})).toBeVisible();
+ await inQueue(page,async()=>{await expect(page.getByRole('heading',{name:'Arrow · 0 / 1',exact:true})).toBeVisible();});
+ await page.getByRole('link',{name:'Queue',exact:true}).click();
  await page.getByText('Edit Arrow / partial progress',{exact:true}).click();
  await page.getByLabel('Notes',{exact:true}).fill('unsaved local note');
  const tab=await context.newPage();await tab.goto('/#/settings');
@@ -65,6 +67,6 @@ test('catalog migration while drafting rejects old queue write without restoring
  expect(await read(tab)).toEqual(before);
  await expect(page.getByLabel('Notes',{exact:true})).toHaveValue('unsaved local note');
  await page.getByRole('button',{name:'Review latest workspace (discard draft)'}).click();
- await expect(page.getByRole('heading',{name:'Arrow · 0 / 1',exact:true})).toBeVisible();
+ await inQueue(page,async()=>{await expect(page.getByRole('heading',{name:'Arrow · 0 / 1',exact:true})).toBeVisible();});
  expect(await read(page)).toEqual(before);
 });

@@ -1,3 +1,4 @@
+import { inQueue } from './queue-navigation';
 import { test, expect } from '@playwright/test';
 test('duplicate choice, branch expansion and allocated provenance survive reload',async({page})=>{
  await page.goto('/#/craft');
@@ -8,10 +9,10 @@ test('duplicate choice, branch expansion and allocated provenance survive reload
  await page.getByText(/Arrow: 11 units/).click();
  await expect(page.getByText(/Wood: 2 per run; 2\/10 per output unit; 4 for this branch/)).toBeVisible();
  await page.getByRole('button',{name:'Pin craft goal',exact:true}).click();
- await expect(page.getByRole('heading',{name:'Arrow · 0 / 11'})).toBeVisible();
+ await inQueue(page,async()=>{await expect(page.getByRole('heading',{name:'Arrow · 0 / 11'})).toBeVisible();});
  await page.getByRole('button',{name:'Pin craft goal',exact:true}).click();
  await page.getByRole('button',{name:/Increase existing goal/}).click();
- await expect(page.getByRole('heading',{name:'Arrow · 0 / 22'})).toBeVisible();
+ await inQueue(page,async()=>{await expect(page.getByRole('heading',{name:'Arrow · 0 / 22'})).toBeVisible();});
  await page.getByRole('button',{name:'Pin craft goal',exact:true}).click();
  await page.getByRole('button',{name:'Create separate pin'}).click();
  await expect(page.locator('.goal-list > li')).toHaveCount(2);
