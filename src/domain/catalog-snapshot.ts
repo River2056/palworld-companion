@@ -1,4 +1,4 @@
-import craftReference from '../../docs/research/crafting-reference.json';
+import completeCraftReference from '../../docs/research/crafting-catalog.json';
 import palReference from '../../docs/research/pal-reference.json';
 import type { Catalog, Material, Source } from './catalog';
 
@@ -109,17 +109,27 @@ export async function createBundledCatalogSnapshot(): Promise<CatalogSnapshot> {
 }
 
 export function bundledSnapshotPayload(): CatalogSnapshotPayload {
-  const craft = normalizeCatalog(craftReference);
+  const craftSource: Source = {
+    url: completeCraftReference.source.url,
+    revision_url: completeCraftReference.source.revisionUrl,
+    attribution: completeCraftReference.source.attribution,
+    license: completeCraftReference.source.license,
+  };
+  const craft: CatalogV2 = structuredClone({
+    items: completeCraftReference.items.map(item => ({...item, kind: item.kind as ItemV2['kind'], source: craftSource})),
+    recipes: completeCraftReference.recipes.map(recipe => ({...recipe, source: craftSource})),
+    defaultRecipeByItem: completeCraftReference.defaultRecipeByItem,
+  });
   return structuredClone({ manifest: {
-    datasetId: `crafting-reference-v1+${palReference.catalogId}`,
+    datasetId: `wiki-item-data-r${completeCraftReference.source.revision}+${palReference.catalogId}`,
     schemaVersion: 2 as const, gameVersion: null, verificationStatus: 'unverified',
-    notes: [...craftReference.notes, palReference.compatibility.notice],
+    notes: [...completeCraftReference.notes, palReference.compatibility.notice],
     sources: [
-      ...[...craftReference.recipes, ...craftReference.leaf_materials].map(r => ({
-        url: r.source.url, revisionUrl: r.source.revision_url,
-        attribution: r.source.attribution, license: r.source.license,
+      {
+        url: completeCraftReference.source.url, revisionUrl: completeCraftReference.source.revisionUrl,
+        attribution: completeCraftReference.source.attribution, license: completeCraftReference.source.license,
         permissionStatus: 'License stated by source; public distribution approval remains a separate gate',
-      })),
+      },
       ...palReference.sources.map(s => ({ url: s.repository, revisionUrl: s.url,
         attribution: `${s.author}; ${s.copyright}`, license: s.license,
         permissionStatus: 'MIT notice retained in pal-attribution.md; game assets and trademarks are not licensed by this assertion',

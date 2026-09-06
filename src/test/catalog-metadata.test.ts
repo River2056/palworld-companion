@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { expect, test } from 'vitest';
 import crafting from '../../docs/research/crafting-reference.json';
+import completeCrafting from '../../docs/research/crafting-catalog.json';
 import pals from '../../docs/research/pal-reference.json';
 
 type Row = Record<string, unknown>;
@@ -178,6 +179,9 @@ test('public attribution copies are complete and MIT notice is verbatim', () => 
 });
 test('distributed attributions cover every actual source and license link', () => {
   const craftNotice = read('public/notices/crafting-attribution.md') + read('public/attribution.html');
+  expect(completeCrafting.items.filter(item => item.kind === 'craftable')).toHaveLength(913);
+  expect(completeCrafting.recipes).toHaveLength(1275);
+  for (const field of ['url', 'revisionUrl', 'attribution', 'license'] as const) expect(craftNotice).toContain(String(completeCrafting.source[field]));
   expect(craftNotice).toContain(crafting.license_url);
   for (const source of [...crafting.recipes.map(r => r.source), ...crafting.leaf_materials.map(r => r.source), ...crafting.recipes.flatMap(r => r.unlock_source ? [r.unlock_source] : [])]) {
     expect(craftNotice).toContain(source.revision_url ?? source.url);

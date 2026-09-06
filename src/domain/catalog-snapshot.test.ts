@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import craftReference from '../../docs/research/crafting-reference.json';
+import completeCraftReference from '../../docs/research/crafting-catalog.json';
 import palReference from '../../docs/research/pal-reference.json';
 import { createBundledCatalogSnapshot, validateCatalogShape, validateSnapshotShape, validateBundledCatalog, canonicalJson, digestCanonicalJson, createCatalogSnapshot, importCatalogSnapshot, bundledSnapshotPayload, normalizeCatalog, resolveRecipe, type CatalogV2 } from './catalog-snapshot';
 
@@ -58,7 +59,7 @@ describe('content-addressed immutable snapshots', () => {
     expect(snapshot.id).toBe(expected.id);
     expect(snapshot.manifest.gameVersion).toBeNull();
     expect(snapshot.pals).toEqual(palReference);
-    expect(snapshot.manifest.notes).toContain(craftReference.notes[0]);
+    expect(snapshot.manifest.notes).toContain(completeCraftReference.notes[0]);
     expect(Object.isFrozen(snapshot.craft.recipes[0].inputs[0])).toBe(true);
     expect(() => { (snapshot.craft.recipes[0].inputs[0] as { count: number }).count = 88; }).toThrow();
     const imported = await importCatalogSnapshot(JSON.parse(JSON.stringify(snapshot)));

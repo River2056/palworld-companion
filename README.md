@@ -43,7 +43,7 @@ Guild users enter trusted Auth and REST endpoints at runtime and explicitly cons
 
 ## Crafting semantics and data
 
-- Catalog: **10 reference recipes and 7 leaf materials**, mixed source revisions, **game patch compatibility unverified**. Alternate recipes and station construction costs are excluded. Recipe/acquisition source links and warnings are visible in the UI; originals and attribution remain in `docs/research/`.
+- Catalog: **913 craftable outputs, 1,275 known recipes and 199 acquisition boundaries** from pinned Palworld Wiki item-data revision 42892; **game patch compatibility is unverified**. Recipe alternatives are included except 13 cycle-forming conversions; stations, unlock levels and station construction costs are unavailable in this source. Source links and warnings are visible in the UI; the reproducible transform and attribution remain in `scripts/` and `docs/research/`.
 - Goals mean **craft more**: owned final-target stock never cancels a top-level goal. Finished quantities round up to whole recipe batches. Planned excess can serve later demand, separately from owned inventory.
 - Queue order controls shared stock reservations. Owned intermediate stock is consumed before expanding shortages; each unit is reserved once per alternative. Direct and raw lists are alternatives, not additive. This is a deterministic priority plan, not a globally optimal schedule.
 - Completion/partial progress never changes inventory automatically. Update physical stock manually; stale stock produces stale estimates.
@@ -61,4 +61,4 @@ Guild users enter trusted Auth and REST endpoints at runtime and explicitly cons
 - `tests/e2e/` — real-browser acceptance checks
 - `docs/reviews/crafting-final.md` — scoped review, evidence and remaining limitations
 
-The larger plan still includes richer provenance, catalog migrations/snapshots, dedicated completion history, and expanded guild workflows. Guild implementation and backend acceptance gates are reviewed separately. Do not interpret the reference dataset as complete or current-game verified. Pal reference research and `pal-attribution.md` remain separately maintained.
+The larger plan still includes richer provenance, catalog migrations/snapshots, dedicated completion history, and expanded guild workflows. Guild implementation and backend acceptance gates are reviewed separately. Do not interpret source-revision coverage as current-game verification. Pal reference research and `pal-attribution.md` remain separately maintained.

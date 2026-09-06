@@ -54,7 +54,13 @@ export function Inventory({data,update}:WorkspaceProps) {
  const {runtime,error:loadError}=useCatalogRuntime();
  if(!runtime)return <p>{loadError||'Loading inventory reference…'}</p>;
  const itemName=(id:string)=>snapshotItemName(runtime.selected,id);
- const ids=[...new Set([...(runtime.selected?.craft.items.map(m=>m.id)??[]),...Object.keys(data.stock)])];
+ const plan=planRuntimeWorkspace(runtime,data);
+ const defaultIds=['wood','stone','ore','wool','sulfur','paldium-fragment','flame-organ'];
+ const ids=[...new Set([
+  ...defaultIds.filter(id=>runtime.selected?.craft.items.some(item=>item.id===id)),
+  ...plan.allocations.map(row=>row.item),
+  ...Object.keys(data.stock),
+ ])];
  return <section className="card"><h2>Manual inventory</h2>
   <p>Enter physical stock only, not planned output. Saved locally; completion never changes these counts.</p>
   <p className="warning">Stale manual counts can misstate shortages. There is no live game sync; last updated records your manual save, not verification in the game. Check counts before crafting.</p>

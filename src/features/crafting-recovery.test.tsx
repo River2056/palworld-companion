@@ -14,6 +14,18 @@ test('recent pins are newest first and padded aliases still resolve', async () =
   expect(screen.getByText(/Output per run:/)).toBeVisible();
 });
 
+test('search and pin use the complete known-recipe catalog, not the curated sample', async () => {
+  const user = userEvent.setup();
+  const update = vi.fn().mockResolvedValue(true);
+  render(<Craft data={emptyWorkspace()} update={update}/>);
+  await user.type(await screen.findByLabelText('Search recipes'), 'mega sphere');
+  await user.click(screen.getByRole('button', {name: 'Select Mega Sphere'}));
+  await user.click(screen.getByRole('button', {name: 'Pin craft goal'}));
+  expect(update).toHaveBeenCalledWith(expect.objectContaining({
+    goals: [expect.objectContaining({item: 'mega-sphere', quantity: 1})],
+  }));
+});
+
 test('unresolved leaf recipe is disclosed; failed replacement retains preview and reset confirmation', async () => {
   const user = userEvent.setup(); const update=vi.fn().mockResolvedValue(false);
   const importFailure=vi.spyOn(workspaceStore,'import').mockRejectedValue(new Error('disk full'));

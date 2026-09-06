@@ -1,19 +1,23 @@
-# Crafting reference attribution
+# Crafting catalog attribution
 
-**Patch compatibility: unverified.** This is a small research catalog, not a current-version database or a complete crafting guide. No in-game checks were performed. Wiki revisions are mixed; no claim is made that this set matches any particular released patch.
+**Patch compatibility: unverified.** The runtime catalog contains 913 craftable outputs, 1,275 recipes and 199 acquisition boundaries normalized from the Palworld Wiki structured item-data module at revision 42892 (2026-08-12). It covers every legal item with a usable recipe in that source except one cyclic-only conversion output. It is not a claim of every game item, current-patch compatibility, or in-game verification.
 
 ## Attribution and reuse
 
-Recipe and acquisition facts were normalized from **Palworld Wiki contributors** on [Palworld Wiki](https://palworld.wiki.gg/). Wiki page content is offered under [Creative Commons Attribution–ShareAlike 4.0](https://creativecommons.org/licenses/by-sa/4.0/) unless otherwise noted. This research adaptation is offered under the same license. Follow the page history links below for contributor attribution. No endorsement by the wiki or Pocketpair is implied. Palworld names and underlying game content remain the property of their respective owners.
+Recipe and item facts were normalized from **Palworld Wiki contributors** on [Palworld Wiki](https://palworld.wiki.gg/). Wiki page content is offered under [Creative Commons Attribution–ShareAlike 4.0](https://creativecommons.org/licenses/by-sa/4.0/) unless otherwise noted. This research adaptation is offered under the same license. See the [pinned data module](https://palworld.wiki.gg/wiki/Module:DataManager/item_data.json?oldid=42892) and its [contributor history](https://palworld.wiki.gg/wiki/Module:DataManager/item_data.json?action=history). No endorsement by the wiki or Pocketpair is implied. Palworld names and underlying game content remain the property of their respective owners.
 
-Changes: selected a small subset, converted ingredient tables into identifiers and integer counts, retained batch yields, selected observed stations, summarized acquisition methods, and omitted images and article/game-description prose. This license statement covers the research adaptation, not unrelated application code.
+Changes: retained English item names, converted names into stable lowercase-hyphen identifiers, separated output items from recipe variants, retained ingredient counts and batch yields, and omitted descriptions, images and unrelated item fields. The source does not identify stations or technology unlock levels, so those remain unknown. Thirteen alternatives that would create dependency cycles are excluded; Giant Pal Soul is treated as an acquisition boundary because its only recipe would close such a cycle. The reproducible transform is `scripts/generate-crafting-catalog.mjs`; it verifies the pinned source SHA-256 before writing `docs/research/crafting-catalog.json`. This license statement covers the research adaptation, not unrelated application code.
 
 ## Interpretation and limitations
 
 - Each input count is consumed once per batch; `output_count` is the resulting batch yield. Do not treat 1 Ingot → 2 Nails or 2 Ingot + 1 Gunpowder → 20 Coarse Ammo as one-output recipes.
-- Nested paths include Crossbow → Nail → Ingot → Ore and Coarse Ammo → Gunpowder → Charcoal → Wood. Leaves are catalog boundaries, not assertions that no crafting alternatives exist (especially Paldium Fragment).
-- Null unlocks mean unknown/not established. Station lists record observed support and need not enumerate every upgraded station. Fuel, work suitability, construction costs, inventory and alternative recipes are outside scope.
-- Wiki `oldid` pins the article revision, but templates/data transcluded into old articles can change independently. It is not a game patch identifier.
+- Acquisition boundaries mean the selected recipe graph stops there, not that an item is impossible to craft or obtain another way.
+- Null unlocks and empty station lists mean unknown/not established by this structured source. Fuel, work suitability, construction costs and inventory are outside scope.
+- Wiki `oldid` pins the data-module revision. It is not a game patch identifier.
+
+## Historical curated reference
+
+The earlier 10-recipe/7-material mixed-revision research remains below as provenance for `crafting-reference.json` and legacy tests. It is no longer the runtime catalog.
 - Retrieval began 2026-09-05 UTC (2026-09-06 Taiwan time). Extraction services can return cached or partial text. Browser/direct requests encountered Cloudflare/403; successful extraction results were used instead.
 - Ingot 31174, Pal Sphere 31056 and Arrow 41963 were verified by the parent researcher and supplied in task context; this worker's attempts at those pinned URLs failed. Other recipe quantities were read from successfully fetched pages.
 - Nail quantities were extracted from its canonical page; revision 31177 was independently exposed by web search, not a successful pinned-page fetch. Cloth quantities/station come from Wool revision 44444, with unlock level from the unpinned Cloth page (which warns it needs updating).

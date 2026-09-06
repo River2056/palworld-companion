@@ -64,9 +64,9 @@ test('App metadata and Today shopping projection use retained snapshot after mig
   p.craft.recipes.find((r:{id:string})=>r.id==='pal-sphere').inputs=[{item:'wood',count:999}];const c=await createCatalogSnapshot(p);
   const preview=await previewCatalogMigration(workspaceStore,c,{goals:{[data.goals[0].id]:'keep'}});await acceptCatalogMigration(workspaceStore,preview.id,preview.expectedRevision);
   const plan=planRuntimeWorkspace(await loadCatalogRuntime(),await workspaceStore.load());
-  return {recipes:c.craft.recipes.length,raw:c.craft.items.filter((i:{kind:string})=>i.kind==='raw').length,missing:plan.direct.filter((r:{missing:number})=>r.missing>0).length};
+  return {craftable:c.craft.items.filter((i:{kind:string})=>i.kind==='craftable').length,recipes:c.craft.recipes.length,raw:c.craft.items.filter((i:{kind:string})=>i.kind==='raw').length,missing:plan.direct.filter((r:{missing:number})=>r.missing>0).length};
  });
- await page.reload();await expect(page.locator('.catalog-status')).toContainText(`${expected.recipes} reference recipes · ${expected.raw} leaf materials`);
+ await page.reload();await expect(page.locator('.catalog-status')).toContainText(`${expected.craftable} craftable items · ${expected.recipes} known recipes · ${expected.raw} material boundaries`);
  await page.goto('/#/today');await expect(page.locator('.hero')).toContainText(`${expected.missing} direct ingredient types missing`);
  const shopping=page.locator('section').filter({has:page.getByRole('heading',{name:'Combined shopping list',exact:true})});
  await expect(shopping).toBeVisible();

@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import App from './App';
 import { workspaceStore } from '../data/workspace';
 beforeEach(async()=>{window.location.hash='#/today';await workspaceStore.reset();});
-test('shows explicit selected catalog and game-version uncertainty', async () => { render(<App/>); expect(await screen.findByText(/Catalog: 10 reference recipes/)).toBeVisible(); });
+test('shows complete selected craft catalog and game-version uncertainty', async () => { render(<App/>); expect(await screen.findByText(/Catalog: 913 craftable items · 1275 known recipes/)).toBeVisible(); });
 test('navigates all modules and leaves guild connection opt-in', async () => {
  const user=userEvent.setup(); render(<App/>); await user.click(screen.getByRole('link',{name:'Craft'}));
  expect(await screen.findByLabelText('Search recipes')).toBeVisible();
