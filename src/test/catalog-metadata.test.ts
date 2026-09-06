@@ -4,6 +4,8 @@ import { createHash } from 'node:crypto';
 import { expect, test } from 'vitest';
 import crafting from '../../docs/research/crafting-reference.json';
 import completeCrafting from '../../docs/research/crafting-catalog.json';
+import acquisition from '../../docs/research/material-acquisition.json';
+import acquisitionEvidence from '../../docs/research/material-acquisition-source.json';
 import pals from '../../docs/research/pal-reference.json';
 
 type Row = Record<string, unknown>;
@@ -112,8 +114,39 @@ function validatePals(value: unknown) {
   for (const [k, records] of [['species', species], ['breedingPairs', pairs], ['exampleChains', chains]] as const) { integer(counts[k]); check(counts[k] === records.length, 'declared count'); }
 }
 
+function validateAcquisition(value: unknown) {
+  const a = row(value); keys(a, ['schemaVersion', 'source', 'coverage', 'materials']); check(a.schemaVersion === 1, 'acquisition schema'); text(a.coverage);
+  const source = row(a.source); keys(source, ['attribution', 'license', 'licenseUrl', 'pages']);
+  check(source.attribution === 'Palworld Wiki contributors' && source.license === 'CC-BY-SA-4.0', 'acquisition attribution'); url(source.licenseUrl);
+  const pages = list(source.pages).map(row); unique(pages.map(page => text(page.title)));
+  for (const page of pages) { keys(page, ['title', 'revision', 'timestamp', 'sha256', 'url']); integer(page.revision); timestamp(page.timestamp); check(/^[a-f0-9]{64}$/.test(text(page.sha256)), 'acquisition digest'); const pinned=url(page.url); check(pinned.hostname === 'palworld.wiki.gg' && pinned.pathname.startsWith('/wiki/') && pinned.search === `?oldid=${page.revision}`, 'pinned acquisition URL'); }
+  const declaredUrls = new Set(pages.map(page => text(page.url)));
+  const rawIds = completeCrafting.items.filter(item => item.kind === 'raw').map(item => item.id);
+  const materials = list(a.materials).map(row); unique(materials.map(material => id(material.itemId)));
+  for (const material of materials) {
+    check(rawIds.includes(id(material.itemId)), 'acquisition material reference');
+    const methods = list(material.methods).map(row); unique(methods.map(method => id(method.id)));
+    for (const method of methods) {
+      keys(method, ['id', 'type', 'title', 'summary', 'sourceUrl'], ['location', 'mapUrl', 'pals']);
+      check(['pal-drop', 'merchant', 'ranch', 'gathering', 'other'].includes(text(method.type)), 'acquisition type'); text(method.title); text(method.summary); check(declaredUrls.has(url(method.sourceUrl).href), 'declared method source');
+      if ('location' in method) text(method.location);
+      if ('mapUrl' in method) check(declaredUrls.has(url(method.mapUrl).href), 'declared method map');
+      if ('pals' in method) for (const pal of list(method.pals).map(row)) { keys(pal, ['name', 'quantity', 'chance', 'location', 'mapUrl']); text(pal.name); text(pal.quantity); text(pal.chance); text(pal.location); const map=url(pal.mapUrl); check(map.hostname === 'pindrop.gg' && map.pathname === '/palworld/map' && map.searchParams.get('pal') === pal.name, 'filtered Pal map'); }
+    }
+  }
+  const dropRows = list(row(list(materials[0].methods)[0]).pals).map(row);
+  expect(dropRows.map(pal => ({name:pal.name,quantity:pal.quantity,chance:pal.chance}))).toEqual(acquisitionEvidence.palDrops.map(({name,quantity,chance})=>({name,quantity,chance})));
+}
+
 test('actual crafting schema and provenance retain the prototype decisions', () => validateCrafting(crafting));
 test('actual Pal schema and provenance retain the prototype decisions', () => validatePals(pals));
+test('detailed acquisition guides are pinned and reference raw catalog items', () => validateAcquisition(acquisition));
+test.each([
+  ['undeclared method source', (a: typeof acquisition) => { a.materials[0].methods[0].sourceUrl = 'https://example.test/source'; }],
+  ['unfiltered Pal map', (a: typeof acquisition) => { a.materials[0].methods[0].pals![0].mapUrl = 'https://example.test/map'; }],
+  ['undeclared merchant map', (a: typeof acquisition) => { a.materials[0].methods[1].mapUrl = 'https://example.test/map'; }],
+  ['drop fact drift', (a: typeof acquisition) => { a.materials[0].methods[0].pals![0].quantity = '999'; }],
+] as const)('rejects acquisition fixture with %s', (_name, mutate) => { const fixture=structuredClone(acquisition); mutate(fixture); expect(()=>validateAcquisition(fixture)).toThrow(); });
 
 // Every mutation is a synthetic in-memory fixture, never a source record edit.
 const craftingMutations: [string, (c: typeof crafting) => void][] = [
@@ -171,6 +204,7 @@ test.each(palMutations)('rejects synthetic Pal fixture: %s', (_name, mutate) => 
 const read = (path: string) => readFileSync(path, 'utf8');
 test('public attribution copies are complete and MIT notice is verbatim', () => {
   expect(read('public/notices/crafting-attribution.md')).toBe(read('docs/research/crafting-attribution.md'));
+  expect(read('public/notices/material-acquisition-attribution.md')).toBe(read('docs/research/material-acquisition-attribution.md'));
   const palNotice = read('pal-attribution.md');
   expect(read('public/notices/pal-attribution.md')).toBe(palNotice);
   const fullMIT = palNotice.match(/```text\n([\s\S]*?)\n```/)?.[1];
@@ -192,6 +226,9 @@ test('distributed attributions cover every actual source and license link', () =
   for (const source of pals.sources) {
     for (const field of ['url', 'licenseUrl', 'revision', 'copyright', 'author'] as const) expect(palNotice).toContain(source[field]);
   }
+  const acquisitionNotice = read('public/notices/material-acquisition-attribution.md') + read('public/attribution.html');
+  for (const page of acquisition.source.pages) expect(acquisitionNotice).toContain(page.url);
+  expect(acquisitionNotice).toContain(acquisition.source.licenseUrl);
 });
 test('complete CC legal text is pinned and distribution index links all notices', () => {
   const license = readFileSync('public/notices/CC-BY-SA-4.0.txt');
@@ -200,12 +237,12 @@ test('complete CC legal text is pinned and distribution index links all notices'
   expect(createHash('sha256').update(license).digest('hex')).toBe(manifest.sha256);
   for (let section = 1; section <= 8; section++) expect(license.toString()).toContain(`Section ${section} --`);
   const index = read('public/attribution.html');
-  for (const file of ['crafting-attribution.md', 'pal-attribution.md', 'PalCalc-MIT.txt', 'CC-BY-SA-4.0.txt', 'license-provenance.json']) expect(index).toContain(`href="notices/${file}"`);
+  for (const file of ['crafting-attribution.md', 'material-acquisition-attribution.md', 'pal-attribution.md', 'PalCalc-MIT.txt', 'CC-BY-SA-4.0.txt', 'license-provenance.json']) expect(index).toContain(`href="notices/${file}"`);
   expect(index).toContain('not legal clearance');
 });
 // Opt-in so normal tests cannot accidentally certify an old build.
 test.runIf(process.env.VERIFY_CATALOG_DIST === '1')('built distribution preserves every notice byte-for-byte when requested', () => {
-  for (const file of ['attribution.html', ...['crafting-attribution.md', 'pal-attribution.md', 'PalCalc-MIT.txt', 'CC-BY-SA-4.0.txt', 'license-provenance.json'].map(f => `notices/${f}`)]) {
+  for (const file of ['attribution.html', ...['crafting-attribution.md', 'material-acquisition-attribution.md', 'pal-attribution.md', 'PalCalc-MIT.txt', 'CC-BY-SA-4.0.txt', 'license-provenance.json'].map(f => `notices/${f}`)]) {
     expect(readFileSync(`dist/${file}`).equals(readFileSync(`public/${file}`)), file).toBe(true);
   }
 });

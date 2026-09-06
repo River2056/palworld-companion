@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "reviewedSource": {
+    "url": "https://palworld.wiki.gg/wiki/Ice_Organ?oldid=44461",
+    "section": "Enemy Drops, Merchants, and Other Drops",
+    "note": "Reviewed normalization of the rendered revision. Shops and Drops are transcluded templates, so their expanded rows are retained here as the auditable source-fact fixture. The generator separately verifies the pinned page wikitext and every directly stated fact."
+  },
+  "palDrops": [
+    {"name":"Azurobe Cryst","quantity":"1–3","chance":"100%"},
+    {"name":"Bastigor","quantity":"2–5","chance":"100%"},
+    {"name":"Beakon Cryst","quantity":"1–2","chance":"100%"},
+    {"name":"Cryolinx","quantity":"1–3","chance":"100%"},
+    {"name":"Elgrove Cryst","quantity":"2–3","chance":"100%"},
+    {"name":"Foxcicle","quantity":"2–3","chance":"100%","location":"Frostbound Mountains"},
+    {"name":"Foxparks Cryst","quantity":"1–3","chance":"100%"},
+    {"name":"Frostallion","quantity":"10","chance":"100%"},
+    {"name":"Frostplume","quantity":"1–2","chance":"100%"},
+    {"name":"Hangyu Cryst","quantity":"1","chance":"100%"},
+    {"name":"Icelyn","quantity":"1–2","chance":"100%"},
+    {"name":"Jolthog Cryst","quantity":"1","chance":"100%"},
+    {"name":"Kingpaca Cryst","quantity":"3–6","chance":"100%"},
+    {"name":"Mau Cryst","quantity":"1–2","chance":"100%","location":"Astral Mountains"},
+    {"name":"Moldron Cryst","quantity":"4–5","chance":"100%"},
+    {"name":"Muffly","quantity":"1","chance":"100%"},
+    {"name":"Pengullet","quantity":"1–2","chance":"100%","location":"Windswept Hills, Sea Breeze Archipelago, Forgotten Island, and southern Astral Mountains"},
+    {"name":"Penking","quantity":"1–3","chance":"100%"},
+    {"name":"Pierdon Cryst","quantity":"4–5","chance":"100%"},
+    {"name":"Polapup","quantity":"1–3","chance":"100%"},
+    {"name":"Rayhound Cryst","quantity":"1–2","chance":"100%"},
+    {"name":"Reindrix","quantity":"2–3","chance":"100%"},
+    {"name":"Reptyro Cryst","quantity":"3–4","chance":"100%"},
+    {"name":"Sibelyx","quantity":"2–3","chance":"100%"},
+    {"name":"Smokie Cryst","quantity":"1–2","chance":"100%"},
+    {"name":"Univolt Cryst","quantity":"1","chance":"100%"},
+    {"name":"Vanwyrm Cryst","quantity":"2–3","chance":"100%"},
+    {"name":"Whalaska","quantity":"1–3","chance":"100%"},
+    {"name":"Wumpo","quantity":"2–3","chance":"100%"}
+  ],
+  "merchants": [
+    {"name":"Caravan Leader","price":"100 Gold","location":"Travelling caravan"},
+    {"name":"Duneshelter Red Shirt Merchant","price":"100 Gold","location":"Duneshelter","coordinates":"357, 347"}
+  ],
+  "ranchPals": ["Foxcicle", "Mau Cryst"]
+}

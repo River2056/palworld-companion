@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "validate:catalog": "vitest run src/domain/catalog.test.ts src/test/catalog-metadata.test.ts src/domain/catalog-snapshot.test.ts",
+    "generate:acquisition": "node scripts/generate-material-acquisition.mjs",
     "dev": "vite --host 127.0.0.1",
     "dev:tailnet": "bash scripts/run-dev-tailscale.sh",
     "build": "tsc --noEmit && vite build",

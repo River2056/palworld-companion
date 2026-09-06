@@ -3,6 +3,7 @@ import { liveQuery } from 'dexie';
 import { workspaceStore, type Workspace } from '../data/workspace';
 
 import { Craft } from '../features/Craft';
+import { Search } from '../features/Search';
 import { Queue, Inventory } from '../features/Queue';
 import { Settings } from '../features/Settings';
 import type { TodayGuildSummary } from '../features/guild/GuildWorkspace';
@@ -22,7 +23,7 @@ async function readWorkspaceRevision() {
 type WorkspaceRevision = Awaited<ReturnType<typeof readWorkspaceRevision>>;
 
 const GuildWorkspace = lazy(() => import('../features/guild').then(module => ({ default: module.GuildWorkspace })));
-const destinations = ['Today', 'Craft', 'Queue', 'Breeding', 'Bases', 'Guild', 'Settings'] as const;
+const destinations = ['Today', 'Search', 'Craft', 'Queue', 'Breeding', 'Bases', 'Guild', 'Settings'] as const;
 type Destination = typeof destinations[number];
 function readDestination(): Destination {
   return destinations.find((name) => window.location.hash === `#/${name.toLowerCase()}`) ?? 'Today';
@@ -132,9 +133,11 @@ export default function App() {
         {view&&latestRevision!==view.revision&&<p role="status">Local data changed. Your unsaved inputs are retained on the previous revision. <button disabled={busy} onClick={reviewLatest}>Review latest workspace (discard draft)</button></p>}
         {!data&&!error&&<p role="status">Loading local workspace…</p>}
         {destination!=='Guild'&&<p role="status" aria-live="polite">{busy?'Saving…':data?'Saved in this browser':''}</p>}
+        {destination==='Search'&&<Search/>}
         {guildOpened&&<div hidden={destination!=='Guild'} inert={destination!=='Guild'} style={destination!=='Guild'?{display:'none'}:undefined}><Suspense fallback={<p role="status">Loading guild interface…</p>}><GuildWorkspace workspace={data} onSummary={setGuildSummary} onSession={setGuildAuthenticated} logoutSignal={logoutSignal}/></Suspense></div>}
         {data&&destination!=='Guild'&&<fieldset key={editorEpoch} disabled={busy} className="workspace" onInputCapture={event=>{if(destination==='Breeding'||destination==='Bases')return;const editor=editorFor(event.target);if(editor){dirtyEditors.current.add(editor);dirty.current=true;}}} onClickCapture={event=>{actionEditor.current=editorFor(event.target);}} onSubmitCapture={event=>{actionEditor.current=editorFor(event.target);}}>
           {destination==='Today'&&<Today data={data} update={update} guildSummary={guildSummary} guildAuthenticated={guildAuthenticated} onGuildLogout={()=>{setGuildSummary(null);setGuildAuthenticated(false);setLogoutSignal(value=>value+1);}}/>}
+
           {/* Keep one owner for each editor across Craft ↔ Queue and viewport changes.
               Hidden working forms retain drafts; the queue is never duplicated. */}
           {(destination==='Craft'||destination==='Queue')&&<div className={`craft-layout ${destination==='Queue'?'queue-screen':''}`}>

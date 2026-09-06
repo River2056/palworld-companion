@@ -1,0 +1,282 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "attribution": "Palworld Wiki contributors",
+    "license": "CC-BY-SA-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "pages": [
+      {
+        "title": "Ice Organ",
+        "revision": 44461,
+        "timestamp": "2026-09-03T01:20:34Z",
+        "sha256": "18a148b6c6cf38d017d27e75523e0db6b2709a2c933345fa5384b4a4d05ed923",
+        "url": "https://palworld.wiki.gg/wiki/Ice_Organ?oldid=44461"
+      },
+      {
+        "title": "Pengullet",
+        "revision": 44345,
+        "timestamp": "2026-08-29T21:46:47Z",
+        "sha256": "d1940080c2b36a462c7712f8ed018d392dbaaf3b86f710281e37edf7a157290c",
+        "url": "https://palworld.wiki.gg/wiki/Pengullet?oldid=44345"
+      },
+      {
+        "title": "Foxcicle",
+        "revision": 44028,
+        "timestamp": "2026-08-28T20:54:12Z",
+        "sha256": "1e1f72cc6d05dc2409bc5bca517ad868b3cf992fc0f91f512d485157997ae306",
+        "url": "https://palworld.wiki.gg/wiki/Foxcicle?oldid=44028"
+      },
+      {
+        "title": "Mau Cryst",
+        "revision": 44458,
+        "timestamp": "2026-09-03T01:12:43Z",
+        "sha256": "b7db56286ef1de5338de006afd141925d0b6064b1c44129190e59a217cd2018a",
+        "url": "https://palworld.wiki.gg/wiki/Mau_Cryst?oldid=44458"
+      },
+      {
+        "title": "Duneshelter",
+        "revision": 20885,
+        "timestamp": "2025-04-21T10:28:35Z",
+        "sha256": "3341f37beaaa77bae429ce33fcaabb409aa1b1f9c257ddfb9ad9af302b1840bd",
+        "url": "https://palworld.wiki.gg/wiki/Duneshelter?oldid=20885"
+      }
+    ]
+  },
+  "coverage": "Selected detailed material guides; all other raw materials retain catalog source guidance.",
+  "materials": [
+    {
+      "itemId": "ice-organ",
+      "methods": [
+        {
+          "id": "ice-pal-drops",
+          "type": "pal-drop",
+          "title": "Pal drops",
+          "summary": "Capture or defeat one of the 29 Pals in the cited drop table. Normal and Alpha duplicates are combined.",
+          "sourceUrl": "https://palworld.wiki.gg/wiki/Ice_Organ?oldid=44461",
+          "pals": [
+            {
+              "name": "Azurobe Cryst",
+              "quantity": "1–3",
+              "chance": "100%",
+              "location": "Open the filtered habitat map for exact spawn regions and points.",
+              "mapUrl": "https://pindrop.gg/palworld/map?pal=Azurobe%20Cryst"
+            },
+            {
+              "name": "Bastigor",
+              "quantity": "2–5",
+              "chance": "100%",
+              "location": "Open the filtered habitat map for exact spawn regions and points.",
+              "mapUrl": "https://pindrop.gg/palworld/map?pal=Bastigor"
+            },
+            {
+              "name": "Beakon Cryst",
+              "quantity": "1–2",
+              "chance": "100%",
+              "location": "Open the filtered habitat map for exact spawn regions and points.",
+              "mapUrl": "https://pindrop.gg/palworld/map?pal=Beakon%20Cryst"
+            },
+            {
+              "name": "Cryolinx",
+              "quantity": "1–3",
+              "chance": "100%",
+              "location": "Open the filtered habitat map for exact spawn regions and points.",
+              "mapUrl": "https://pindrop.gg/palworld/map?pal=Cryolinx"
+            },
+            {
+              "name": "Elgrove Cryst",
+              "quantity": "2–3",
+              "chance": "100%",
+              "location": "Open the filtered habitat map for exact spawn regions and points.",
+              "mapUrl": "https://pindrop.gg/palworld/map?pal=Elgrove%20Cryst"
+            },
+            {
+              "name": "Foxcicle",
+              "quantity": "2–3",
+              "chance": "100%",
+              "location": "Frostbound Mountains",
+              "mapUrl": "https://pindrop.gg/palworld/map?pal=Foxcicle"
+            },
+            {
+              "name": "Foxparks Cryst",
+              "quantity": "1–3",
+              "chance": "100%",
+              "location": "Open the filtered habitat map for exact spawn regions and points.",
+              "mapUrl": "https://pindrop.gg/palworld/map?pal=Foxparks%20Cryst"
+            },
+            {
+              "name": "Frostallion",
+              "quantity": "10",
+              "chance": "100%",
+              "location": "Open the filtered habitat map for exact spawn regions and points.",
+              "mapUrl": "https://pindrop.gg/palworld/map?pal=Frostallion"
+            },
+            {
+              "name": "Frostplume",
+              "quantity": "1–2",
+              "chance": "100%",
+              "location": "Open the filtered habitat map for exact spawn regions and points.",
+              "mapUrl": "https://pindrop.gg/palworld/map?pal=Frostplume"
+            },
+            {
+              "name": "Hangyu Cryst",
+              "quantity": "1",
+              "chance": "100%",
+              "location": "Open the filtered habitat map for exact spawn regions and points.",
+              "mapUrl": "https://pindrop.gg/palworld/map?pal=Hangyu%20Cryst"
+            },
+            {
+              "name": "Icelyn",
+              "quantity": "1–2",
+              "chance": "100%",
+              "location": "Open the filtered habitat map for exact spawn regions and points.",
+              "mapUrl": "https://pindrop.gg/palworld/map?pal=Icelyn"
+            },
+            {
+              "name": "Jolthog Cryst",
+              "quantity": "1",
+              "chance": "100%",
+              "location": "Open the filtered habitat map for exact spawn regions and points.",
+              "mapUrl": "https://pindrop.gg/palworld/map?pal=Jolthog%20Cryst"
+            },
+            {
+              "name": "Kingpaca Cryst",
+              "quantity": "3–6",
+              "chance": "100%",
+              "location": "Open the filtered habitat map for exact spawn regions and points.",
+              "mapUrl": "https://pindrop.gg/palworld/map?pal=Kingpaca%20Cryst"
+            },
+            {
+              "name": "Mau Cryst",
+              "quantity": "1–2",
+              "chance": "100%",
+              "location": "Astral Mountains",
+              "mapUrl": "https://pindrop.gg/palworld/map?pal=Mau%20Cryst"
+            },
+            {
+              "name": "Moldron Cryst",
+              "quantity": "4–5",
+              "chance": "100%",
+              "location": "Open the filtered habitat map for exact spawn regions and points.",
+              "mapUrl": "https://pindrop.gg/palworld/map?pal=Moldron%20Cryst"
+            },
+            {
+              "name": "Muffly",
+              "quantity": "1",
+              "chance": "100%",
+              "location": "Open the filtered habitat map for exact spawn regions and points.",
+              "mapUrl": "https://pindrop.gg/palworld/map?pal=Muffly"
+            },
+            {
+              "name": "Pengullet",
+              "quantity": "1–2",
+              "chance": "100%",
+              "location": "Windswept Hills, Sea Breeze Archipelago, Forgotten Island, and southern Astral Mountains",
+              "mapUrl": "https://pindrop.gg/palworld/map?pal=Pengullet"
+            },
+            {
+              "name": "Penking",
+              "quantity": "1–3",
+              "chance": "100%",
+              "location": "Open the filtered habitat map for exact spawn regions and points.",
+              "mapUrl": "https://pindrop.gg/palworld/map?pal=Penking"
+            },
+            {
+              "name": "Pierdon Cryst",
+              "quantity": "4–5",
+              "chance": "100%",
+              "location": "Open the filtered habitat map for exact spawn regions and points.",
+              "mapUrl": "https://pindrop.gg/palworld/map?pal=Pierdon%20Cryst"
+            },
+            {
+              "name": "Polapup",
+              "quantity": "1–3",
+              "chance": "100%",
+              "location": "Open the filtered habitat map for exact spawn regions and points.",
+              "mapUrl": "https://pindrop.gg/palworld/map?pal=Polapup"
+            },
+            {
+              "name": "Rayhound Cryst",
+              "quantity": "1–2",
+              "chance": "100%",
+              "location": "Open the filtered habitat map for exact spawn regions and points.",
+              "mapUrl": "https://pindrop.gg/palworld/map?pal=Rayhound%20Cryst"
+            },
+            {
+              "name": "Reindrix",
+              "quantity": "2–3",
+              "chance": "100%",
+              "location": "Open the filtered habitat map for exact spawn regions and points.",
+              "mapUrl": "https://pindrop.gg/palworld/map?pal=Reindrix"
+            },
+            {
+              "name": "Reptyro Cryst",
+              "quantity": "3–4",
+              "chance": "100%",
+              "location": "Open the filtered habitat map for exact spawn regions and points.",
+              "mapUrl": "https://pindrop.gg/palworld/map?pal=Reptyro%20Cryst"
+            },
+            {
+              "name": "Sibelyx",
+              "quantity": "2–3",
+              "chance": "100%",
+              "location": "Open the filtered habitat map for exact spawn regions and points.",
+              "mapUrl": "https://pindrop.gg/palworld/map?pal=Sibelyx"
+            },
+            {
+              "name": "Smokie Cryst",
+              "quantity": "1–2",
+              "chance": "100%",
+              "location": "Open the filtered habitat map for exact spawn regions and points.",
+              "mapUrl": "https://pindrop.gg/palworld/map?pal=Smokie%20Cryst"
+            },
+            {
+              "name": "Univolt Cryst",
+              "quantity": "1",
+              "chance": "100%",
+              "location": "Open the filtered habitat map for exact spawn regions and points.",
+              "mapUrl": "https://pindrop.gg/palworld/map?pal=Univolt%20Cryst"
+            },
+            {
+              "name": "Vanwyrm Cryst",
+              "quantity": "2–3",
+              "chance": "100%",
+              "location": "Open the filtered habitat map for exact spawn regions and points.",
+              "mapUrl": "https://pindrop.gg/palworld/map?pal=Vanwyrm%20Cryst"
+            },
+            {
+              "name": "Whalaska",
+              "quantity": "1–3",
+              "chance": "100%",
+              "location": "Open the filtered habitat map for exact spawn regions and points.",
+              "mapUrl": "https://pindrop.gg/palworld/map?pal=Whalaska"
+            },
+            {
+              "name": "Wumpo",
+              "quantity": "2–3",
+              "chance": "100%",
+              "location": "Open the filtered habitat map for exact spawn regions and points.",
+              "mapUrl": "https://pindrop.gg/palworld/map?pal=Wumpo"
+            }
+          ]
+        },
+        {
+          "id": "duneshelter-merchant",
+          "type": "merchant",
+          "title": "Merchant",
+          "summary": "Buy Ice Organ for 100 Gold each from the Duneshelter Red Shirt Merchant. The cited item page also lists the Caravan Leader.",
+          "location": "Duneshelter · coordinates 357, 347",
+          "sourceUrl": "https://palworld.wiki.gg/wiki/Ice_Organ?oldid=44461",
+          "mapUrl": "https://palworld.wiki.gg/wiki/Duneshelter?oldid=20885"
+        },
+        {
+          "id": "ranch-production",
+          "type": "ranch",
+          "title": "Ranch",
+          "summary": "Assign Foxcicle and Mau Cryst to a Ranch for a chance to produce Ice Organ.",
+          "location": "Any player Ranch",
+          "sourceUrl": "https://palworld.wiki.gg/wiki/Ice_Organ?oldid=44461"
+        }
+      ]
+    }
+  ]
+}

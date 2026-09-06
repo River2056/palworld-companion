@@ -1,6 +1,6 @@
 # Palworld Companion
 
-Local-first, unofficial Palworld planning app. Craft, Breeding, Bases and optional Guild are reachable from the shell; this is not a claim that the full product plan is complete. Today shows the real crafting queue, shortages, Pal roster counts and base assignments. Craft supports fuzzy recipe search, finished-unit quantities, direct ingredients, raw-material alternatives, priority pins, notes, manual inventory and progress. Base gap targets link to Breeding. Guild loads only when opened, with no backend request before explicit consent and authentication.
+Local-first, unofficial Palworld planning app. Search, Craft, Breeding, Bases and optional Guild are reachable from the shell; this is not a claim that the full product plan is complete. Today shows the real crafting queue, shortages, Pal roster counts and base assignments. Search covers every raw-material boundary and adds source-backed Pal drops, habitat links, merchant locations and Ranch methods for selected detailed guides. Craft supports fuzzy recipe search, finished-unit quantities, direct ingredients, raw-material alternatives, priority pins, notes, manual inventory and progress. Base gap targets link to Breeding. Guild loads only when opened, with no backend request before explicit consent and authentication.
 
 ## Run locally
 
@@ -27,6 +27,7 @@ The launcher uses loopback frontend port `5174`, starts the Podman-backed Guild 
 
 ```sh
 npm run validate:catalog
+npm run generate:acquisition
 npx vitest run src/domain src/data src/app/App.test.tsx src/features/crafting-recovery.test.tsx
 npm run typecheck
 npm run lint
@@ -55,7 +56,7 @@ Guild users enter trusted Auth and REST endpoints at runtime and explicitly cons
 
 - `src/domain/` — catalog validation and pure crafting calculation, with tests
 - `src/data/` — versioned crafting backup validation and transactional Dexie store
-- `src/features/{Craft,Queue,Shopping,Today,Settings}.tsx` — crafting UI
+- `src/features/{Search,Craft,Queue,Shopping,Today,Settings}.tsx` — material and crafting UI
 - `src/features/pals/` — separately maintained breeding/base workspaces
 - `src/app/` — responsive shell, navigation and persistence boundary
 - `tests/e2e/` — real-browser acceptance checks
